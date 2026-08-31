@@ -22,6 +22,7 @@ function Register() {
         agreeToTerms: false
     });
 
+    const [confirmPassword, setConfirmPassword] = useState(''); 
     const [error, setError] = useState('');
     const { register } =  useAuth();
     const navigate = useNavigate();
@@ -35,17 +36,23 @@ function Register() {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        
-        try {
-            await register(formData);
-            navigate('/dashboard');
-        }
-        catch (err) {
-            setError(err.response?.data?.message || 'Registration failed');
-        }
-    };
+    e.preventDefault();
+    setError('');
+
+    if (formData.password !== confirmPassword) {
+        setError('Passwords do not match');
+        return;
+    }
+
+    try {
+        await register(formData);
+        navigate('/dashboard');
+    }
+    catch (err) {
+        setError(err.response?.data?.message || 'Registration failed');
+    }
+};
+
 
     return (
         <div>
@@ -55,8 +62,15 @@ function Register() {
                 <input type="text" name="lastname" placeholder="Last Name" value={formData.lastname} onChange={handleChange} required />
                 <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
                 <input type="text" name="mobile" placeholder="Mobile Number" value={formData.mobile} onChange={handleChange} required />
-                <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required
-    />
+                <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required/>
+<input
+    type="password"
+    name="confirmPassword"
+    placeholder="Confirm Password"
+    value={confirmPassword}
+    onChange={(e) => setConfirmPassword(e.target.value)}
+    required
+/>
                 <input type="date" name="dateOfBirth" placeholder="Date of Birth" value={formData.dateOfBirth} onChange={handleChange} required />
                 <select name="gender" value={formData.gender} onChange={handleChange} required>
                     <option value="">Select Gender</option>
