@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
-import "./Login.css";
+import "./auth.css";
 
 function Login() {
     const [email, setEmail] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,20 +65,30 @@ function Login() {
                         </div>
 
                         <div className="auth-field">
-                            <label htmlFor="password">Password</label>
-                            <input
-                                id="password"
-                                type="password"
-                                placeholder="Enter your password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                        </div>
+    <label htmlFor="password">Password</label>
+    <div className="auth-field-input-wrap">
+        <input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+        />
+        <button
+            type="button"
+            className="auth-field-toggle"
+            onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+        >
+            {showPassword ? "Hide" : "Show"}
+        </button>
+    </div>
+</div>
 
                         {error && <p className="auth-error" role="alert">{error}</p>}
 
-                        <button type="submit" className="auth-submit" disabled={isSubmitting}>
+                        <button type="submit" className="auth-submit" disabled={isSubmitting}>  
                             {isSubmitting ? 'Logging in…' : 'Log in'}
                         </button>
                     </form>

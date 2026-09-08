@@ -14,14 +14,10 @@
     --error-bg: #FBEAE9;
 }
 
-*, *::before, *::after {
-    box-sizing: border-box;
-}
-
 .auth-screen {
     min-height: 100vh;
     display: grid;
-    grid-template-columns: 5fr 6fr;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
     background: var(--bg);
     font-family: 'Inter', -apple-system, sans-serif;
     color: var(--ink);
@@ -37,7 +33,6 @@
 }
 
 .auth-brand-content {
-    width: 100%;
     max-width: 26rem;
     margin: 0 auto;
 }
@@ -119,7 +114,9 @@
 }
 
 .auth-field input {
+    box-sizing: border-box;
     width: 100%;
+    min-width: 0;
     font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
     padding: 0.7rem 0.85rem;
@@ -152,7 +149,9 @@
 }
 
 .auth-field select {
+    box-sizing: border-box;
     width: 100%;
+    min-width: 0;
     font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
     padding: 0.7rem 2.25rem 0.7rem 0.85rem;
@@ -179,6 +178,42 @@
     box-shadow: 0 0 0 3px rgba(31, 111, 92, 0.15);
 }
 
+.auth-field-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.auth-field-input-wrap input {
+    width: 100%;
+    padding-right: 3.5rem;
+}
+
+.auth-field-toggle {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--brand);
+    cursor: pointer;
+    padding: 0.25rem 0.35rem;
+    border-radius: 4px;
+}
+
+.auth-field-toggle:hover {
+    color: var(--brand-dark);
+}
+
+.auth-field-toggle:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 1px;
+}
+
 .auth-error {
     font-size: 0.85rem;
     color: var(--error);
@@ -189,7 +224,6 @@
 }
 
 .auth-submit {
-    width: 100%;
     font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
     font-weight: 600;
@@ -260,18 +294,6 @@
     .auth-panel {
         padding: 2.5rem 1.5rem;
     }
-}
-
-/* Remove Firefox spinner */
-.auth-field input[type="number"] {
-    -moz-appearance: textfield;
-}
-
-/* Remove Chrome/Safari/Edge spinners */
-.auth-field input[type="number"]::-webkit-outer-spin-button,
-.auth-field input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

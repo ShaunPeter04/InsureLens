@@ -22,6 +22,7 @@ function Register() {
         agreeToTerms: false
     });
 
+    const [showpassword, setShowPassword] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -96,25 +97,45 @@ function Register() {
                                     <input id="mobile" type="text" name="mobile" placeholder="98765 43210" value={formData.mobile} onChange={handleChange} required />
                                 </div>
                                 <div className="auth-field">
-                                    <label htmlFor="password">Password</label>
-                                    <input id="password" type="password" name="password" placeholder="Create a password" value={formData.password} onChange={handleChange} required />
-                                </div>
-                                <div className="auth-field">
-                                    <label htmlFor="confirmPassword">Confirm password</label>
-                                    <input
-                                        id="confirmPassword"
-                                        type="password"
-                                        name="confirmPassword"
-                                        placeholder="Re-enter your password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        aria-invalid={passwordsMismatch}
-                                        required
-                                    />
-                                    {passwordsMismatch && (
-                                        <span className="auth-field-hint">Passwords don't match yet</span>
-                                    )}
-                                </div>
+                                <label htmlFor="password">Password</label>
+                                <div className="auth-field-input-wrap">
+        <input id="password" type={showpassword ? "text" : "password"} name="password" placeholder="Create a password" value={formData.password} onChange={handleChange} required />
+        <button
+            type="button"
+            className="auth-field-toggle"
+            onClick={() => setShowPassword(!showpassword)}
+            aria-label={showpassword ? "Hide password" : "Show password"}
+        >
+            {showpassword ? "Hide" : "Show"}
+        </button>
+    </div>
+</div>
+<div className="auth-field">
+    <label htmlFor="confirmPassword">Confirm password</label>
+    <div className="auth-field-input-wrap">
+        <input
+            id="confirmPassword"
+            type={showpassword ? "text" : "password"}
+            name="confirmPassword"
+            placeholder="Re-enter your password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            aria-invalid={passwordsMismatch}
+            required
+        />
+        <button
+            type="button"
+            className="auth-field-toggle"
+            onClick={() => setShowPassword(!showpassword)}
+            aria-label={showpassword ? "Hide password" : "Show password"}
+        >
+            {showpassword ? "Hide" : "Show"}
+        </button>
+    </div>
+    {passwordsMismatch && (
+        <span className="auth-field-hint">Passwords don't match yet</span>
+    )}
+</div>
                             </div>
                         </div>
 
