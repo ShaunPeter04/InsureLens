@@ -24,6 +24,7 @@ function NavBar() {
             <div className="navbar-links">
                 <NavLink to="/dashboard" className={linkClass}>Dashboard</NavLink>
                 <NavLink to="/profile" className={linkClass}>Profile</NavLink>
+                <NavLink to="/policies" className={linkClass}>Policies</NavLink>
             </div>
             <div className="navbar-user">
                 <span className="navbar-greeting">Hi, {firstName}</span>

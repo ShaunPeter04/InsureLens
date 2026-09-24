@@ -59,13 +59,33 @@ const subLimitSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      trim: true, // e.g., "Cataract", "Joint Replacement", "Maternity"
+      trim: true,
     },
+
+    limitType: {
+      type: String,
+      enum: [
+        'Fixed Amount',
+        'Percentage of Sum Insured',
+        'Up to Sum Insured',
+        'Other'
+      ],
+      default: 'Fixed Amount',
+    },
+
     limitAmount: {
       type: Number,
-      required: true,
       min: 0,
+      default: null,
     },
+
+    limitPercentage: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: null,
+    },
+
     description: {
       type: String,
       trim: true,
@@ -89,10 +109,10 @@ const policySchema = new mongoose.Schema(
       trim: true,
     },
     policyType: {
-      type: String,
-      enum: ['Individual', 'Family Floater', 'Senior Citizen', 'Critical Illness'],
-      default: 'Individual',
-    },
+  type: [String],
+  enum: ['Individual', 'Family Floater', 'Senior Citizen', 'Critical Illness'],
+  default: ['Individual'],
+},
     coverageAmounts: {
       type: [Number], // Available Sum Insured tiers: [300000, 500000, 1000000]
       required: true,
@@ -102,10 +122,10 @@ const policySchema = new mongoose.Schema(
       ],
     },
     basePremium: {
-      type: Number,
-      required: [true, 'Base premium is required'],
-      min: 0,
-    },
+  type: Number,
+  min: 0,
+  default: null,
+},
     eligibility: {
       minAge: {
         type: Number,

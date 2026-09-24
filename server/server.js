@@ -5,6 +5,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const authRoutes = require('./routes/auth');
+const policyRoutes = require('./routes/policies');
 const auth = require('./middleware/auth');
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
+app.use('/api/policies', policyRoutes);
 
 app.get('/api/protected', auth, (req, res) => {
     res.json({

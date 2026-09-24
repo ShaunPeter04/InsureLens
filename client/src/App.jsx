@@ -6,7 +6,8 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import AuthenticatedLayout from './pages/AuthenticatedLayout';
 import Profile from './pages/Profile';
-
+import Policies from './pages/Policies';
+import PolicyDetails from './pages/PolicyDetails';
 
 
 function App() {
@@ -20,6 +21,8 @@ function App() {
       <Route element={<AuthenticatedLayout/>}>
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/profile" element={<Profile/>} />
+      <Route path="/policies" element={<Policies/>} />
+      <Route path="/policies/:id" element={<PolicyDetails/>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

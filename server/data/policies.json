@@ -1,0 +1,887 @@
+[
+  {
+    "insuranceCompany": "Care Health Insurance",
+    "policyName": "Care Supreme",
+    "policyType": [
+      "Individual",
+      "Family Floater"
+    ],
+    "coverageAmounts": [
+      700000,
+      1000000,
+      1500000,
+      2500000,
+      5000000,
+      10000000
+    ],
+    "basePremium": null,
+
+    "eligibility": {
+      "minAge": 18,
+      "maxAge": 99,
+      "familyFloaterAllowed": true
+    },
+
+    "waitingPeriods": {
+      "initialDays": 30,
+      "specificIllnessesMonths": 24,
+      "preExistingDiseasesMonths": 36,
+      "description": "Accidental hospitalization has no initial waiting period."
+    },
+
+    "preExistingConditionsRules": [
+      "Pre-existing diseases are subject to a 36-month waiting period."
+    ],
+
+    "hospitalizationCoverage": {
+      "inpatientCovered": true,
+      "minimumHospitalizationHours": 24,
+      "daycareTreatmentsCovered": true,
+      "preHospitalizationDays": 60,
+      "postHospitalizationDays": 180
+    },
+
+    "roomRentLimit": {
+      "hasCap": false,
+      "percentageOfSumInsured": 0,
+      "maxPerDay": 0,
+      "roomTypeAllowed": "No Restriction"
+    },
+
+    "coPaymentPercentage": 0,
+
+    "deductibleAmount": 0,
+
+    "subLimits": [],
+
+    "majorExclusions": [
+      "OPD treatment",
+      "Self-inflicted injury",
+      "Expenses arising from alcohol, tobacco or drug misuse or abuse",
+      "Spectacles and contact lenses",
+      "Dental treatment not requiring hospitalization",
+      "Pregnancy and childbirth related expenses",
+      "External congenital disease",
+      "Infertility related tests and treatment",
+      "Unlawful activities"
+    ],
+
+    "importantConditions": [
+      "Planned hospitalization should be intimated at least 48 hours in advance.",
+      "Emergency hospitalization should be intimated within 24 hours."
+    ],
+
+    "documentUrl": "https://www.careinsurance.com/product/care-supreme",
+
+    "documentTextChunks": [],
+
+    "isActiveCatalogPlan": true
+  },
+  {
+  "insuranceCompany": "HDFC ERGO General Insurance",
+  "policyName": "my:Optima Secure",
+  "policyType": [
+    "Individual",
+    "Family Floater"
+  ],
+
+  "coverageAmounts": [
+    500000,
+    1000000,
+    1500000,
+    2000000,
+    2500000,
+    5000000,
+    7500000,
+    10000000,
+    20000000
+  ],
+
+  "basePremium": null,
+
+  "eligibility": {
+    "minAge": 18,
+    "maxAge": 65,
+    "familyFloaterAllowed": true
+  },
+
+  "waitingPeriods": {
+    "initialDays": 30,
+    "specificIllnessesMonths": 24,
+    "preExistingDiseasesMonths": 36,
+    "description": "Accidental claims are not subject to the initial waiting period."
+  },
+
+  "preExistingConditionsRules": [
+    "Pre-existing diseases are subject to a 36-month waiting period.",
+    "Optional modification of the pre-existing disease waiting period may be available subject to policy terms."
+  ],
+
+  "hospitalizationCoverage": {
+    "inpatientCovered": true,
+    "minimumHospitalizationHours": 24,
+    "daycareTreatmentsCovered": true,
+    "preHospitalizationDays": 60,
+    "postHospitalizationDays": 180
+  },
+
+  "roomRentLimit": {
+    "hasCap": false,
+    "percentageOfSumInsured": 0,
+    "maxPerDay": 0,
+    "roomTypeAllowed": "No Restriction"
+  },
+
+  "coPaymentPercentage": 0,
+
+  "deductibleAmount": 0,
+
+  "subLimits": [],
+
+  "majorExclusions": [
+    "Treatment during applicable waiting periods",
+    "Abuse of intoxicants, drugs or alcohol",
+    "Pregnancy related expenses subject to policy terms",
+    "Cosmetic surgery subject to policy terms",
+    "Weight control treatment",
+    "War and related events",
+    "Certain congenital external diseases"
+  ],
+
+  "importantConditions": [
+    "Accidental hospitalization is not subject to the initial 30-day waiting period.",
+    "Optional deductible and waiting-period modifications may change the standard policy configuration."
+  ],
+
+  "documentUrl": "https://www.hdfcergo.com/docs/default-source/downloads/policy-wordings/health/optima-secure-revision-pw.pdf",
+
+  "documentTextChunks": [],
+
+  "isActiveCatalogPlan": true
+},
+{
+  "insuranceCompany": "Niva Bupa Health Insurance",
+  "policyName": "ReAssure 2.0",
+
+  "policyType": [
+    "Individual",
+    "Family Floater"
+  ],
+
+  "coverageAmounts": [
+    500000,
+    1000000,
+    1500000,
+    2000000,
+    2500000,
+    5000000,
+    10000000
+  ],
+
+  "basePremium": null,
+
+  "eligibility": {
+    "minAge": 18,
+    "maxAge": 65,
+    "familyFloaterAllowed": true
+  },
+
+  "waitingPeriods": {
+    "initialDays": 30,
+    "specificIllnessesMonths": 24,
+    "preExistingDiseasesMonths": 36,
+    "description": "Initial waiting period does not apply to claims arising from accidents."
+  },
+
+  "preExistingConditionsRules": [
+    "Pre-existing diseases are covered after a 36-month waiting period."
+  ],
+
+  "hospitalizationCoverage": {
+    "inpatientCovered": true,
+    "minimumHospitalizationHours": 2,
+    "daycareTreatmentsCovered": true,
+    "preHospitalizationDays": 60,
+    "postHospitalizationDays": 180
+  },
+
+  "roomRentLimit": {
+    "hasCap": false,
+    "percentageOfSumInsured": 0,
+    "maxPerDay": 0,
+    "roomTypeAllowed": "No Restriction"
+  },
+
+  "coPaymentPercentage": 0,
+
+  "deductibleAmount": 0,
+
+  "subLimits": [
+    {
+      "category": "Air Ambulance",
+      "limitAmount": 250000,
+      "description": "Maximum air ambulance benefit per hospitalization."
+    }
+  ],
+
+  "majorExclusions": [
+    "Investigation and evaluation",
+    "Rest cure, rehabilitation and respite care",
+    "Cosmetic or plastic surgery",
+    "Hazardous or adventure sports",
+    "Breach of law",
+    "Unproven treatments",
+    "Conflict and disaster",
+    "External congenital anomaly"
+  ],
+
+  "importantConditions": [
+    "In-patient hospitalization of 2 hours or more is covered.",
+    "AYUSH hospitalization requires a minimum hospitalization period of 24 hours.",
+    "Benefits and limits may vary depending on the selected policy variant."
+  ],
+
+  "documentUrl": "https://transaction.nivabupa.com/pages/doc/policy_wording/ReAssure-2.0-Policy-Wording.pdf?v=1.1",
+
+  "documentTextChunks": [],
+
+  "isActiveCatalogPlan": true
+},
+{
+  "insuranceCompany": "Star Health and Allied Insurance",
+  "policyName": "Star Comprehensive Insurance Policy",
+
+  "policyType": [
+    "Individual",
+    "Family Floater"
+  ],
+
+  "coverageAmounts": [
+    500000,
+    1000000,
+    1500000,
+    2000000,
+    2500000,
+    5000000,
+    10000000
+  ],
+
+  "basePremium": null,
+
+  "eligibility": {
+    "minAge": 18,
+    "maxAge": 65,
+    "familyFloaterAllowed": true
+  },
+
+  "waitingPeriods": {
+    "initialDays": 30,
+    "specificIllnessesMonths": 36,
+    "preExistingDiseasesMonths": 36,
+    "description": "Pre-existing disease waiting period may be reduced from 36 months to 12 months through the optional Buy-back PED cover."
+  },
+
+  "preExistingConditionsRules": [
+    "Pre-existing diseases are subject to a 36-month waiting period under the standard policy.",
+    "An optional Buy-back PED cover can reduce the applicable waiting period to 12 months, subject to policy terms."
+  ],
+
+  "hospitalizationCoverage": {
+    "inpatientCovered": true,
+    "minimumHospitalizationHours": 24,
+    "daycareTreatmentsCovered": true,
+    "preHospitalizationDays": 60,
+    "postHospitalizationDays": 90
+  },
+
+  "roomRentLimit": {
+    "hasCap": true,
+    "percentageOfSumInsured": 0,
+    "maxPerDay": 0,
+    "roomTypeAllowed": "Single Private AC"
+  },
+
+  "coPaymentPercentage": 0,
+
+  "deductibleAmount": 0,
+
+  "subLimits": [
+    {
+      "category": "Air Ambulance",
+      "limitType": "Fixed Amount",
+      "limitAmount": 250000,
+      "description": "Air ambulance benefit is subject to policy-specific limits."
+    }
+  ],
+
+  "majorExclusions": [
+    "Investigation and evaluation",
+    "Rest cure, rehabilitation and respite care",
+    "Obesity or weight control treatment except where specifically covered",
+    "Change-of-gender treatment",
+    "Cosmetic or plastic surgery except where medically necessary under policy terms",
+    "Hazardous or adventure sports",
+    "Breach of law",
+    "Treatment for alcoholism, drug or substance abuse",
+    "Unproven treatments"
+  ],
+
+  "importantConditions": [
+    "Hospitalisation expenses are covered for eligible inpatient treatment exceeding 24 hours.",
+    "Private Single A/C room is allowed under the standard room eligibility.",
+    "Pre-hospitalisation expenses are covered up to 60 days.",
+    "Post-hospitalisation expenses are covered up to 90 days.",
+    "Certain benefits and sub-limits depend on the selected Sum Insured.",
+    "Optional Buy-back PED cover can alter the standard waiting period."
+  ],
+
+  "documentUrl": "https://www.starhealth.in/health-insurance/comprehensive-health-insurance/",
+
+  "documentTextChunks": [],
+
+  "isActiveCatalogPlan": true
+},
+{
+  "insuranceCompany": "ICICI Lombard General Insurance",
+  "policyName": "Elevate",
+
+  "policyType": [
+    "Individual",
+    "Family Floater"
+  ],
+
+  "coverageAmounts": [
+    500000,
+    1000000,
+    1500000,
+    2000000,
+    2500000,
+    5000000,
+    10000000,
+    20000000,
+    30000000
+  ],
+
+  "basePremium": null,
+
+  "eligibility": {
+    "minAge": 18,
+    "maxAge": 120,
+    "familyFloaterAllowed": true
+  },
+
+  "waitingPeriods": {
+    "initialDays": 30,
+    "specificIllnessesMonths": 24,
+    "preExistingDiseasesMonths": 36,
+    "description": "Waiting periods may be reduced through applicable optional covers, subject to policy terms."
+  },
+
+  "preExistingConditionsRules": [
+    "Pre-existing diseases are subject to the applicable waiting period.",
+    "An optional waiting period reduction cover may reduce the pre-existing disease waiting period.",
+    "Jumpstart may provide earlier coverage for selected declared conditions such as asthma, diabetes and hypertension, subject to policy terms."
+  ],
+
+  "hospitalizationCoverage": {
+    "inpatientCovered": true,
+    "minimumHospitalizationHours": 24,
+    "daycareTreatmentsCovered": true,
+    "preHospitalizationDays": 90,
+    "postHospitalizationDays": 180
+  },
+
+  "roomRentLimit": {
+    "hasCap": false,
+    "percentageOfSumInsured": 0,
+    "maxPerDay": 0,
+    "roomTypeAllowed": "No Restriction"
+  },
+
+  "coPaymentPercentage": 0,
+
+  "deductibleAmount": 0,
+
+  "subLimits": [],
+
+  "majorExclusions": [
+    "Investigation and evaluation not linked to covered treatment",
+    "Rest cure, rehabilitation and respite care",
+    "Obesity or weight control treatment except as permitted under policy terms",
+    "Change-of-gender treatment",
+    "Cosmetic or plastic surgery except where covered under specified circumstances",
+    "Hazardous or adventure sports",
+    "Breach of law",
+    "Treatment for alcoholism, drug or substance abuse",
+    "Unproven treatments"
+  ],
+
+  "importantConditions": [
+    "Pre-hospitalisation medical expenses are covered for up to 90 days before eligible hospitalisation.",
+    "Post-hospitalisation medical expenses are covered for up to 180 days after discharge.",
+    "Daycare procedures and treatments are covered.",
+    "Reset benefit can restore the base Sum Insured subject to policy conditions.",
+    "Waiting periods can vary when optional waiting-period reduction covers are selected.",
+    "Voluntary co-payment and voluntary deductible are optional covers and are not represented as standard co-payment or deductible here.",
+    "Room eligibility can be modified through the optional Room Modifier cover.",
+    "Planned cashless hospitalisation should generally be notified at least 48 hours in advance and emergency hospitalisation within 24 hours."
+  ],
+
+  "documentUrl": "https://www.icicilombard.com/health-insurance/elevate-health-policy",
+
+  "documentTextChunks": [],
+
+  "isActiveCatalogPlan": true
+},
+{
+  "insuranceCompany": "Aditya Birla Health Insurance",
+  "policyName": "Activ One MAX",
+
+  "policyType": [
+    "Individual",
+    "Family Floater"
+  ],
+
+  "coverageAmounts": [
+    500000,
+    1000000,
+    1500000,
+    2000000,
+    2500000,
+    5000000,
+    10000000,
+    20000000,
+    30000000
+  ],
+
+  "basePremium": null,
+
+  "eligibility": {
+    "minAge": 18,
+    "maxAge": 120,
+    "familyFloaterAllowed": true
+  },
+
+  "waitingPeriods": {
+    "initialDays": 30,
+    "specificIllnessesMonths": 24,
+    "preExistingDiseasesMonths": 36,
+    "description": "The initial 30-day waiting period does not apply to accidental hospitalization."
+  },
+
+  "preExistingConditionsRules": [
+    "Pre-existing diseases are subject to a 36-month waiting period.",
+    "Specific diseases and procedures are subject to a 24-month waiting period."
+  ],
+
+  "hospitalizationCoverage": {
+    "inpatientCovered": true,
+    "minimumHospitalizationHours": 24,
+    "daycareTreatmentsCovered": true,
+    "preHospitalizationDays": 90,
+    "postHospitalizationDays": 180
+  },
+
+  "roomRentLimit": {
+    "hasCap": false,
+    "percentageOfSumInsured": 0,
+    "maxPerDay": 0,
+    "roomTypeAllowed": "No Restriction"
+  },
+
+  "coPaymentPercentage": 0,
+
+  "deductibleAmount": 0,
+
+  "subLimits": [],
+
+  "majorExclusions": [
+    "Investigation and evaluation not resulting in covered treatment",
+    "Rest cure, rehabilitation and respite care",
+    "Obesity or weight control treatment except where covered under policy conditions",
+    "Change-of-gender treatment",
+    "Cosmetic or plastic surgery except under specified covered circumstances",
+    "Hazardous or adventure sports",
+    "Breach of law",
+    "Treatment at excluded or listed providers except emergency stabilization",
+    "Treatment at nature cure clinics, health hydros, spas or similar establishments"
+  ],
+
+  "importantConditions": [
+    "In-patient hospitalization treatment is covered up to the Base Sum Insured subject to policy terms.",
+    "Pre-hospitalization medical expenses are covered for up to 90 days.",
+    "Post-hospitalization medical expenses are covered for up to 180 days.",
+    "Claim Protect covers specified non-medical expenses associated with an admissible hospitalization claim.",
+    "Super Credit increases the available cover on renewal subject to policy conditions and limits.",
+    "Super Reload provides additional Sum Insured for subsequent eligible claims subject to policy terms.",
+    "There is no standard zone-wise co-payment.",
+    "Benefits and conditions may vary according to the selected Activ One variant and optional covers."
+  ],
+
+  "documentUrl": "https://adityabirlacapital.com/healthinsurance/assets/pdf/active-one/MAX/product-information/policy-document.pdf",
+
+  "documentTextChunks": [],
+
+  "isActiveCatalogPlan": true
+},
+{
+  "insuranceCompany": "Tata AIG General Insurance",
+  "policyName": "Tata AIG MediCare Premier",
+
+  "policyType": [
+    "Individual",
+    "Family Floater"
+  ],
+
+  "coverageAmounts": [
+    500000,
+    1000000,
+    1500000,
+    2000000,
+    2500000,
+    5000000,
+    7500000,
+    10000000,
+    20000000,
+    30000000
+  ],
+
+  "basePremium": null,
+
+  "eligibility": {
+    "minAge": 18,
+    "maxAge": 65,
+    "familyFloaterAllowed": true
+  },
+
+  "waitingPeriods": {
+    "initialDays": 30,
+    "specificIllnessesMonths": 24,
+    "preExistingDiseasesMonths": 36,
+    "description": "The initial waiting period does not apply to hospitalization resulting from an accident."
+  },
+
+  "preExistingConditionsRules": [
+    "Pre-existing diseases are covered after completion of the applicable waiting period.",
+    "Specified diseases and procedures are subject to their applicable waiting period."
+  ],
+
+  "hospitalizationCoverage": {
+    "inpatientCovered": true,
+    "minimumHospitalizationHours": 24,
+    "daycareTreatmentsCovered": true,
+    "preHospitalizationDays": 60,
+    "postHospitalizationDays": 90
+  },
+
+  "roomRentLimit": {
+    "hasCap": false,
+    "percentageOfSumInsured": 0,
+    "maxPerDay": 0,
+    "roomTypeAllowed": "No Restriction"
+  },
+
+  "coPaymentPercentage": 0,
+
+  "deductibleAmount": 0,
+
+  "subLimits": [],
+
+  "majorExclusions": [
+    "Investigation and evaluation not associated with covered treatment",
+    "Rest cure, rehabilitation and respite care",
+    "Obesity or weight control treatment except where specifically covered",
+    "Change-of-gender treatment",
+    "Cosmetic or plastic surgery except under specified medical circumstances",
+    "Hazardous or adventure sports",
+    "Breach of law",
+    "Treatment for alcoholism, drug or substance abuse",
+    "Unproven treatments"
+  ],
+
+  "importantConditions": [
+    "Eligible inpatient hospitalization expenses are covered subject to policy terms and Sum Insured.",
+    "Daycare procedures that do not require 24-hour hospitalization are covered subject to policy conditions.",
+    "Pre-hospitalization medical expenses are covered for the applicable period before an admissible hospitalization.",
+    "Post-hospitalization medical expenses are covered for the applicable period after discharge.",
+    "The policy includes additional benefits beyond standard hospitalization coverage, subject to their individual conditions and limits.",
+    "Actual premium depends on insured members, age, Sum Insured, location and other underwriting factors."
+  ],
+
+  "documentUrl": "https://www.tataaig.com/health-insurance/medicare-premier",
+
+  "documentTextChunks": [],
+
+  "isActiveCatalogPlan": true
+},
+{
+  "insuranceCompany": "ManipalCigna Health Insurance",
+  "policyName": "ProHealth Prime Advantage",
+
+  "policyType": [
+    "Individual",
+    "Family Floater"
+  ],
+
+  "coverageAmounts": [
+    500000,
+    750000,
+    1000000,
+    1500000,
+    2000000,
+    2500000,
+    5000000,
+    7500000,
+    10000000
+  ],
+
+  "basePremium": null,
+
+  "eligibility": {
+    "minAge": 18,
+    "maxAge": 120,
+    "familyFloaterAllowed": true
+  },
+
+  "waitingPeriods": {
+    "initialDays": 30,
+    "specificIllnessesMonths": 24,
+    "preExistingDiseasesMonths": 36,
+    "description": "PED waiting period varies by Sum Insured. For Sum Insured up to Rs. 5 lakh it is 36 months, while for Sum Insured of Rs. 7.5 lakh and above it is 24 months."
+  },
+
+  "preExistingConditionsRules": [
+    "For Sum Insured up to Rs. 5 lakh, the pre-existing disease waiting period is 36 months.",
+    "For Sum Insured of Rs. 7.5 lakh and above, the pre-existing disease waiting period is 24 months."
+  ],
+
+  "hospitalizationCoverage": {
+    "inpatientCovered": true,
+    "minimumHospitalizationHours": 24,
+    "daycareTreatmentsCovered": true,
+    "preHospitalizationDays": 60,
+    "postHospitalizationDays": 180
+  },
+
+  "roomRentLimit": {
+    "hasCap": true,
+    "percentageOfSumInsured": 0,
+    "maxPerDay": 0,
+    "roomTypeAllowed": "Single Private AC"
+  },
+
+  "coPaymentPercentage": 0,
+
+  "deductibleAmount": 0,
+
+  "subLimits": [
+    {
+      "category": "Domiciliary Hospitalization",
+      "limitType": "Percentage of Sum Insured",
+      "limitPercentage": 10,
+      "description": "Domiciliary hospitalization is covered up to 10% of Sum Insured."
+    },
+    {
+      "category": "Air Ambulance",
+      "limitType": "Other",
+      "limitAmount": 1000000,
+      "description": "Covered up to Sum Insured, subject to a maximum of Rs. 10 lakh."
+    },
+    {
+      "category": "Bariatric Surgery",
+      "limitType": "Other",
+      "limitAmount": 500000,
+      "description": "Covered up to Sum Insured, subject to a maximum of Rs. 5 lakh."
+    }
+  ],
+
+  "majorExclusions": [
+    "Breach of law",
+    "Contamination from nuclear fuel or radiation",
+    "Hazardous or adventure sports",
+    "Foreign invasion or civil war"
+  ],
+
+  "importantConditions": [
+    "Pre-hospitalization expenses are covered for up to 60 days.",
+    "Post-hospitalization expenses are covered for up to 180 days.",
+    "Daycare treatment is covered up to the Sum Insured.",
+    "Road ambulance expenses are covered up to the Sum Insured.",
+    "AYUSH treatment is covered up to the Sum Insured.",
+    "Unlimited restoration of Sum Insured is available for related and unrelated illnesses, subject to policy terms.",
+    "Standard room eligibility is Single Private AC room with ICU expenses up to Sum Insured.",
+    "Optional packages can upgrade room accommodation to Any Room.",
+    "PED waiting period depends on the selected Sum Insured."
+  ],
+
+  "documentUrl": "https://www.manipalcigna.com/hospitalization-cover/prohealth-insurance/prohealthprime-advantage",
+
+  "documentTextChunks": [],
+
+  "isActiveCatalogPlan": true
+},
+{
+  "insuranceCompany": "Bajaj General Insurance",
+  "policyName": "Health Guard Gold",
+
+  "policyType": [
+    "Individual",
+    "Family Floater"
+  ],
+
+  "coverageAmounts": [
+    300000,
+    400000,
+    500000,
+    750000,
+    1000000,
+    1500000,
+    2000000,
+    2500000,
+    5000000
+  ],
+
+  "basePremium": null,
+
+  "eligibility": {
+    "minAge": 18,
+    "maxAge": 65,
+    "familyFloaterAllowed": true
+  },
+
+  "waitingPeriods": {
+    "initialDays": 30,
+    "specificIllnessesMonths": 24,
+    "preExistingDiseasesMonths": 36,
+    "description": "The initial waiting period does not apply to accidental bodily injury. Specified diseases/procedures and pre-existing diseases are subject to their respective waiting periods."
+  },
+
+  "preExistingConditionsRules": [
+    "Pre-existing diseases are subject to a 36-month waiting period.",
+    "Coverage remains subject to policy terms, disclosures and underwriting."
+  ],
+
+  "hospitalizationCoverage": {
+    "inpatientCovered": true,
+    "minimumHospitalizationHours": 24,
+    "daycareTreatmentsCovered": true,
+    "preHospitalizationDays": 60,
+    "postHospitalizationDays": 90
+  },
+
+  "roomRentLimit": {
+    "hasCap": true,
+    "percentageOfSumInsured": 1,
+    "maxPerDay": 0,
+    "roomTypeAllowed": "Single Private AC"
+  },
+
+  "coPaymentPercentage": 0,
+
+  "deductibleAmount": 0,
+
+  "subLimits": [],
+
+  "majorExclusions": [
+    "Investigation and evaluation not associated with covered treatment",
+    "Rest cure, rehabilitation and respite care",
+    "Obesity or weight control treatment except where covered under policy terms",
+    "Change-of-gender treatment",
+    "Cosmetic or plastic surgery except under specified medical circumstances",
+    "Hazardous or adventure sports",
+    "Breach of law",
+    "Treatment for alcoholism, drug or substance abuse",
+    "Unproven treatments"
+  ],
+
+  "importantConditions": [
+    "Eligible inpatient hospitalization expenses are covered subject to the Sum Insured and policy conditions.",
+    "Daycare procedures are covered subject to policy terms.",
+    "Pre-hospitalization expenses are covered for the applicable period before an admissible hospitalization.",
+    "Post-hospitalization expenses are covered for the applicable period after discharge.",
+    "Room eligibility and associated limits depend on the selected Health Guard variant and Sum Insured.",
+    "This catalog record represents the Gold variant and should not be treated as the Silver or Platinum variant.",
+    "Premium depends on insured members, age, Sum Insured, location and underwriting factors."
+  ],
+
+  "documentUrl": "https://www.bajajgeneralinsurance.com/health-insurance-plans/health-guard.html",
+
+  "documentTextChunks": [],
+
+  "isActiveCatalogPlan": true
+},
+{
+  "insuranceCompany": "ACKO General Insurance",
+  "policyName": "ACKO Platinum Health Plan",
+
+  "policyType": [
+    "Individual",
+    "Family Floater"
+  ],
+
+  "coverageAmounts": [
+    10000000
+  ],
+
+  "basePremium": null,
+
+  "eligibility": {
+    "minAge": 18,
+    "maxAge": 120,
+    "familyFloaterAllowed": true
+  },
+
+  "waitingPeriods": {
+    "initialDays": 0,
+    "specificIllnessesMonths": 0,
+    "preExistingDiseasesMonths": 0,
+    "description": "ACKO Platinum provides zero waiting period and Day-1 coverage, subject to complete disclosure of applicable pre-existing conditions and policy terms."
+  },
+
+  "preExistingConditionsRules": [
+    "Disclosed pre-existing diseases can be covered from Day 1 under the Platinum plan.",
+    "All relevant pre-existing medical conditions must be disclosed when purchasing the policy.",
+    "Claims involving undisclosed pre-existing conditions may be rejected subject to policy terms."
+  ],
+
+  "hospitalizationCoverage": {
+    "inpatientCovered": true,
+    "minimumHospitalizationHours": 24,
+    "daycareTreatmentsCovered": true,
+    "preHospitalizationDays": 60,
+    "postHospitalizationDays": 120
+  },
+
+  "roomRentLimit": {
+    "hasCap": false,
+    "percentageOfSumInsured": 0,
+    "maxPerDay": 0,
+    "roomTypeAllowed": "No Restriction"
+  },
+
+  "coPaymentPercentage": 0,
+
+  "deductibleAmount": 0,
+
+  "subLimits": [],
+
+  "majorExclusions": [],
+
+  "importantConditions": [
+    "Platinum offers Day-1 coverage with zero waiting period subject to required medical disclosures and policy terms.",
+    "There is no room-rent or room-category restriction under the Platinum plan.",
+    "The plan has zero co-payment.",
+    "The plan advertises zero deductions on admissible claims subject to policy terms.",
+    "Pre-hospitalization expenses are covered for up to 60 days.",
+    "Post-hospitalization expenses are covered for up to 120 days.",
+    "Unlimited restoration of Sum Insured is available subject to policy terms.",
+    "Platinum is available with high Sum Insured options including Rs. 1 crore and Unlimited coverage."
+  ],
+
+  "documentUrl": "https://www.acko.com/health-insurance/waiting-period/",
+
+  "documentTextChunks": [],
+
+  "isActiveCatalogPlan": true
+}
+]
