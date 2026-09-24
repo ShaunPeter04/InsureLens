@@ -61,6 +61,17 @@ export function AuthProvider({ children }) {
     return response.data;
   };
 
+  const updateProfile = async (formData) => {
+  const response = await axios.put(`${API_URL}/profile`, formData);
+
+  const { user } = response.data;
+
+  setUser(user);
+  localStorage.setItem("user", JSON.stringify(user));
+
+  return response.data;
+};
+
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -79,6 +90,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        updateProfile
       }}
     >
       {children}

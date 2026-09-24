@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import AuthenticatedLayout from './pages/AuthenticatedLayout';
+import Profile from './pages/Profile';
 
 
 
@@ -18,7 +19,7 @@ function App() {
 
       <Route element={<AuthenticatedLayout/>}>
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/profile" element={<div>Profile Page</div>} />
+      <Route path="/profile" element={<Profile/>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

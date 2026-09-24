@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    --ink: #12232E;
+    --ink-soft: #4C5E68;
+    --brand: #1F6F5C;
+    --brand-dark: #16503F;
+    --brand-light: #E6F0ED;
+    --accent: #E8A33D;
+    --accent-dark: #C6862A;
+    --bg: #F7F9FB;
+    --surface: #FFFFFF;
+    --border: #D8E1E5;
+    --error: #B3261E;
+    --error-bg: #FBEAE9;
+}
+
+.app-shell {
+    min-height: 100vh;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    background: var(--bg);
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: var(--ink);
+    text-align: left;
+}
+
+.app-main {
+    width: 100%;
+    padding: 2.5rem 3rem;
+}
+
+.app-heading {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.app-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.75rem;
+}

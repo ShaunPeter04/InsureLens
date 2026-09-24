@@ -1,6 +1,7 @@
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
+import "./theme.css";
+import "./NavBar.css";
 
 
 function NavBar() {
@@ -13,18 +14,20 @@ function NavBar() {
         navigate('/login');
     }
 
-    return (
-        <nav>
-            <div>
+    const linkClass = ({ isActive }) => (isActive ? "navbar-link active" : "navbar-link");
+
+    return ( 
+        <nav className="navbar">
+            <div className="navbar-brand">
                 <strong>InsureLens</strong>
             </div>
-            <div>
-                <Link to="/dashboard">Dashboard</Link>
-                <Link to="/profile">Profile</Link>
+            <div className="navbar-links">
+                <NavLink to="/dashboard" className={linkClass}>Dashboard</NavLink>
+                <NavLink to="/profile" className={linkClass}>Profile</NavLink>
             </div>
-            <div>
-                <span>Hi, {firstName}</span>
-                <button type="button" onClick={handleLogout}>Logout</button>
+            <div className="navbar-user">
+                <span className="navbar-greeting">Hi, {firstName}</span>
+                <button type="button" onClick={handleLogout} className="navbar-logout">Logout</button>
             </div>
         </nav>
     );

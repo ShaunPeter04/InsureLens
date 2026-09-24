@@ -2,6 +2,7 @@ const express=require('express');
 const bcrypt=require('bcrypt');
 const jwt=require('jsonwebtoken');
 const User=require('../models/User');
+const auth=require('../middleware/auth');
 const router=express.Router();
 
 router.post('/register',async(req,res)=>{
@@ -95,6 +96,81 @@ res.json({
         console.error(error);
         res.status(500).json({message:'Server error'});
     }
+});
+
+router.get("/profile", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user).select("-passwordHash");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
+
+    res.json({
+      user
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Server error"
+    });
+  }
+});
+
+router.put("/profile", auth, async (req, res) => {
+  try {
+    const allowedFields = [
+      "firstname",
+      "lastname",
+      "mobile",
+      "dateOfBirth",
+      "gender",
+      "address",
+      "city",
+      "state",
+      "pincode",
+      "occupation",
+      "annualIncome"
+    ];
+
+    const updates = {};
+
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    });
+
+    const user = await User.findByIdAndUpdate(
+      req.user,
+      updates,
+      {
+        new: true,
+        runValidators: true
+      }
+    ).select("-passwordHash");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
+
+    res.json({
+      message: "Profile updated successfully",
+      user
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Server error"
+    });
+  }
 });
 
 module.exports=router;

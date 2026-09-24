@@ -24,6 +24,10 @@ const familyMembersSchema=mongoose.Schema({
         type:Boolean,
         required:true
     },
+    preExistingDiseases: {
+    type: [String],
+    default: []
+    },
     },
     {id: true}
 );
@@ -94,6 +98,22 @@ const userSchema=mongoose.Schema({
     familyMembers:{
         type:[familyMembersSchema],
         default:[],
+    },
+    insuranceRequirements: {
+    budget: { type: Number },
+    requiredCoverage: { type: Number },
+    hasExistingInsurance: { type: Boolean, default: false },
+    coPaymentPreference: { type: Number },
+    cityTier: { type: String },
+    isSmokerOrTobaccoUser: { type: Boolean, default: false },
+    alcoholConsumption: { type: String },
+    hasHighRiskOccupation: { type: Boolean, default: false },
+    preExistingDiseases: {
+        type: [String],
+        default: []
+    },
+    coverageType: { type: String },
+    updatedAt: { type: Date }
     },
     },
     {

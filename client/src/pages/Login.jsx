@@ -34,10 +34,10 @@ function Login() {
         <div className="auth-screen">
             <div className="auth-brand">
                 <div className="auth-brand-content">
-                    <span className="auth-brand-mark">InsureLens</span>
-                    <h1 className="auth-brand-headline">
+                    <h1 className="auth-brand-headline">InsureLens</h1>
+                    <h2 className="auth-brand-mark">
                         Understand what you're covered for, before you need it.
-                    </h1>
+                    </h2>
                     <p className="auth-brand-copy">
                         Track your policies, check a hospitalization against your
                         coverage, and see exactly why a claim was approved or denied —

@@ -1,5 +1,6 @@
 import { useAuth } from "../context/AuthContext";
-
+import "./theme.css";
+import "./Dashboard.css";
 
 function Dashboard(){
 
@@ -7,10 +8,11 @@ function Dashboard(){
     const firstName=user?.firstname || 'User';
 
     return(
-        <div>
-            <h1>Dashboard</h1>
-            <p>Welcome, {firstName}!</p>
-
+        <div className="app-shell">
+            <div className="app-main">
+                <h1 className="app-heading">Dashboard</h1>
+                <p className="dashboard-welcome">Welcome, {firstName}!</p>
+            </div>
         </div>
 
     );
