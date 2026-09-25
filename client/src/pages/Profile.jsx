@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import "./Profile.css";
 
 function Profile() {
   const { user, updateProfile } = useAuth();
@@ -69,177 +70,339 @@ function Profile() {
       setIsEditing(false);
     } catch (error) {
       setError(
-        error.response?.data?.message || "Failed to update profile"
+        error.response?.data?.message ||
+          "Failed to update profile"
       );
     }
   };
 
+  const formatIncome = (income) => {
+    if (income === null || income === undefined || income === "") {
+      return "Not provided";
+    }
+
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(income);
+  };
+
   if (!user) {
-    return <p>Loading profile...</p>;
+    return (
+      <div className="profile-page">
+        <div className="profile-card">
+          Loading profile...
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <h1>My Profile</h1>
+    <div className="profile-page">
 
-      {!isEditing ? (
-        <div>
-          <p><strong>First Name:</strong> {user.firstname || "Not provided"}</p>
-          <p><strong>Last Name:</strong> {user.lastname || "Not provided"}</p>
-          <p><strong>Email:</strong> {user.email || "Not provided"}</p>
-          <p><strong>Mobile:</strong> {user.mobile || "Not provided"}</p>
+      {/* Header */}
+      <div className="profile-header">
+        <h1>
+          {isEditing ? "Edit Profile" : "My Profile"}
+        </h1>
 
-          <p>
-            <strong>Date of Birth:</strong>{" "}
-            {user.dateOfBirth
-              ? user.dateOfBirth.split("T")[0]
-              : "Not provided"}
-          </p>
+        <p>
+          {isEditing
+            ? "Update your personal and financial information."
+            : "View and manage your InsureLens profile information."}
+        </p>
+      </div>
 
-          <p><strong>Gender:</strong> {user.gender || "Not provided"}</p>
-          <p><strong>Address:</strong> {user.address || "Not provided"}</p>
-          <p><strong>City:</strong> {user.city || "Not provided"}</p>
-          <p><strong>State:</strong> {user.state || "Not provided"}</p>
-          <p><strong>Pincode:</strong> {user.pincode || "Not provided"}</p>
-          <p><strong>Occupation:</strong> {user.occupation || "Not provided"}</p>
-          <p><strong>Annual Income:</strong> {user.annualIncome ?? "Not provided"}</p>
+      <div className="profile-card">
 
-          <button type="button" onClick={handleEdit}>
-            Edit Profile
-          </button>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label>First Name</label>
-            <input
-              type="text"
-              name="firstname"
-              value={formData.firstname}
-              onChange={handleChange}
-            />
-          </div>
+        {!isEditing ? (
+          <>
+            {/* VIEW PROFILE */}
 
-          <div>
-            <label>Last Name</label>
-            <input
-              type="text"
-              name="lastname"
-              value={formData.lastname}
-              onChange={handleChange}
-            />
-          </div>
+            <h2 className="profile-section-title">
+              Personal Information
+            </h2>
 
-          <div>
-            <label>Email</label>
-            <p>{user.email}</p>
-          </div>
+            <div className="profile-info-grid">
 
-          <div>
-            <label>Mobile</label>
-            <input
-              type="text"
-              name="mobile"
-              value={formData.mobile}
-              onChange={handleChange}
-            />
-          </div>
+              <ProfileItem
+                label="First Name"
+                value={user.firstname}
+              />
 
-          <div>
-            <label>Date of Birth</label>
-            <input
-              type="date"
-              name="dateOfBirth"
-              value={formData.dateOfBirth}
-              onChange={handleChange}
-            />
-          </div>
+              <ProfileItem
+                label="Last Name"
+                value={user.lastname}
+              />
 
-          <div>
-            <label>Gender</label>
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
+              <ProfileItem
+                label="Email"
+                value={user.email}
+              />
+
+              <ProfileItem
+                label="Mobile"
+                value={user.mobile}
+              />
+
+              <ProfileItem
+                label="Date of Birth"
+                value={
+                  user.dateOfBirth
+                    ? user.dateOfBirth.split("T")[0]
+                    : null
+                }
+              />
+
+              <ProfileItem
+                label="Gender"
+                value={user.gender}
+              />
+
+              <ProfileItem
+                label="Address"
+                value={user.address}
+              />
+
+              <ProfileItem
+                label="City"
+                value={user.city}
+              />
+
+              <ProfileItem
+                label="State"
+                value={user.state}
+              />
+
+              <ProfileItem
+                label="Pincode"
+                value={user.pincode}
+              />
+
+              <ProfileItem
+                label="Occupation"
+                value={user.occupation}
+              />
+
+              <ProfileItem
+                label="Annual Income"
+                value={formatIncome(user.annualIncome)}
+              />
+
+            </div>
+
+            <div className="profile-actions">
+              <button
+                type="button"
+                className="profile-primary-button"
+                onClick={handleEdit}
+              >
+                Edit Profile
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* EDIT PROFILE */}
+
+            <h2 className="profile-section-title">
+              Update Information
+            </h2>
+
+            <form
+              className="profile-form"
+              onSubmit={handleSubmit}
             >
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
 
-          <div>
-            <label>Address</label>
-            <input
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-            />
-          </div>
+              <FormField
+                label="First Name"
+                name="firstname"
+                value={formData.firstname}
+                onChange={handleChange}
+              />
 
-          <div>
-            <label>City</label>
-            <input
-              type="text"
-              name="city"
-              value={formData.city}
-              onChange={handleChange}
-            />
-          </div>
+              <FormField
+                label="Last Name"
+                name="lastname"
+                value={formData.lastname}
+                onChange={handleChange}
+              />
 
-          <div>
-            <label>State</label>
-            <input
-              type="text"
-              name="state"
-              value={formData.state}
-              onChange={handleChange}
-            />
-          </div>
+              {/* Email is read-only */}
+              <div className="profile-form-group">
+                <label>Email</label>
 
-          <div>
-            <label>Pincode</label>
-            <input
-              type="text"
-              name="pincode"
-              value={formData.pincode}
-              onChange={handleChange}
-            />
-          </div>
+                <p className="profile-email">
+                  {user.email}
+                </p>
+              </div>
 
-          <div>
-            <label>Occupation</label>
-            <input
-              type="text"
-              name="occupation"
-              value={formData.occupation}
-              onChange={handleChange}
-            />
-          </div>
+              <FormField
+                label="Mobile"
+                name="mobile"
+                value={formData.mobile}
+                onChange={handleChange}
+              />
 
-          <div>
-            <label>Annual Income</label>
-            <input
-              type="number"
-              name="annualIncome"
-              value={formData.annualIncome}
-              onChange={handleChange}
-            />
-          </div>
+              <FormField
+                label="Date of Birth"
+                name="dateOfBirth"
+                type="date"
+                value={formData.dateOfBirth}
+                onChange={handleChange}
+              />
 
-          {error && <p>{error}</p>}
+              <div className="profile-form-group">
+                <label htmlFor="gender">
+                  Gender
+                </label>
 
-          <button type="submit">
-            Save Changes
-          </button>
+                <select
+                  id="gender"
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                >
+                  <option value="">
+                    Select Gender
+                  </option>
 
-          <button type="button" onClick={handleCancel}>
-            Cancel
-          </button>
-        </form>
-      )}
+                  <option value="Male">
+                    Male
+                  </option>
+
+                  <option value="Female">
+                    Female
+                  </option>
+
+                  <option value="Other">
+                    Other
+                  </option>
+                </select>
+              </div>
+
+              <FormField
+                label="Address"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+              />
+
+              <FormField
+                label="City"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+              />
+
+              <FormField
+                label="State"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+              />
+
+              <FormField
+                label="Pincode"
+                name="pincode"
+                value={formData.pincode}
+                onChange={handleChange}
+              />
+
+              <FormField
+                label="Occupation"
+                name="occupation"
+                value={formData.occupation}
+                onChange={handleChange}
+              />
+
+              <FormField
+                label="Annual Income"
+                name="annualIncome"
+                type="number"
+                value={formData.annualIncome}
+                onChange={handleChange}
+              />
+
+              {error && (
+                <p className="profile-error">
+                  {error}
+                </p>
+              )}
+
+              <div className="profile-form-actions">
+
+                <button
+                  type="submit"
+                  className="profile-primary-button"
+                >
+                  Save Changes
+                </button>
+
+                <button
+                  type="button"
+                  className="profile-secondary-button"
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </button>
+
+              </div>
+
+            </form>
+          </>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+
+/* Displays one profile field */
+
+function ProfileItem({ label, value }) {
+  return (
+    <div className="profile-info-item">
+
+      <span className="profile-info-label">
+        {label}
+      </span>
+
+      <span className="profile-info-value">
+        {value || "Not provided"}
+      </span>
+
+    </div>
+  );
+}
+
+
+/* Reusable edit field */
+
+function FormField({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+}) {
+  return (
+    <div className="profile-form-group">
+
+      <label htmlFor={name}>
+        {label}
+      </label>
+
+      <input
+        id={name}
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+      />
+
     </div>
   );
 }
