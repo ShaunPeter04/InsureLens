@@ -237,8 +237,10 @@ def calculate_policy_score(policy, requirements):
         pre_hospital_score = 3
     elif pre_days >= 30:
         pre_hospital_score = 2
-    else:
+    elif pre_days > 0:
         pre_hospital_score = 1
+    else:
+        pre_hospital_score = 0
 
     # Post-hospitalization: 4 points
     if post_days >= 90:
@@ -247,15 +249,17 @@ def calculate_policy_score(policy, requirements):
         post_hospital_score = 3
     elif post_days >= 30:
         post_hospital_score = 2
-    else:
+    elif post_days > 0:
         post_hospital_score = 1
-
-    hospitalization_score = (
-        inpatient_score
-        + daycare_score
-        + pre_hospital_score
-        + post_hospital_score
-    )
+    else:
+        post_hospital_score = 0
+        
+        hospitalization_score = (
+            inpatient_score
+            + daycare_score
+            + pre_hospital_score
+            + post_hospital_score
+        )
 
     score += hospitalization_score
 

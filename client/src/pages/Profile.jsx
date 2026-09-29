@@ -127,12 +127,8 @@ function Profile() {
             <div className="profile-info-grid">
 
               <ProfileItem
-              label="Gender"
-              value={
-                user.gender
-                ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1)
-                : null
-              }
+                label="First Name"
+                value={user.firstname}
               />
 
               <ProfileItem
@@ -161,7 +157,11 @@ function Profile() {
 
               <ProfileItem
                 label="Gender"
-                value={user.gender}
+                value={
+                  user.gender
+                    ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1)
+                    : null
+                }
               />
 
               <ProfileItem

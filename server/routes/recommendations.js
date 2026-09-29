@@ -491,10 +491,12 @@ router.post("/", auth, async (req, res) => {
         // ML SERVICE
         // --------------------------------------------------
 
-        if (
-            !process.env
-                .ML_SERVICE_URL
-        ) {
+        const mlServiceUrl =
+            process.env.ML_SERVICE_URL
+                ?.trim()
+                .replace(/\/+$/, "");
+
+        if (!mlServiceUrl) {
             return res
                 .status(500)
                 .json({
@@ -504,7 +506,7 @@ router.post("/", auth, async (req, res) => {
         }
 
         const mlUrl =
-            `${process.env.ML_SERVICE_URL.trim()}/recommend`;
+            `${mlServiceUrl}/recommend`;
 
         const mlResponse =
             await axios.post(

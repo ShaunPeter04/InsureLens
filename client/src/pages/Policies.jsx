@@ -49,23 +49,22 @@ function Policies() {
   }
 
   const filteredPolicies = policies.filter((policy) => {
-    const searchText = search.toLowerCase();
+  const searchText = search.toLowerCase();
 
-    const matchesSearch =
-      policy.policyName.toLowerCase().includes(searchText) ||
-      policy.insuranceCompany.toLowerCase().includes(searchText);
+  const matchesSearch =
+    policy.policyName?.toLowerCase().includes(searchText) ||
+    policy.insuranceCompany?.toLowerCase().includes(searchText);
 
-    const matchesType =
-      policyType === "" ||
-      policy.policyType.includes(policyType);
+  const matchesType =
+    policyType === "" ||
+    policy.policyType?.includes(policyType);
 
-    const matchesCoverage =
-      coverage === "" ||
-      policy.coverageAmounts.includes(Number(coverage));
+  const matchesCoverage =
+    coverage === "" ||
+    policy.coverageAmounts?.includes(Number(coverage));
 
-    return matchesSearch && matchesType && matchesCoverage;
-  });
-
+  return matchesSearch && matchesType && matchesCoverage;
+});
   return (
     <div className="policies-page">
 

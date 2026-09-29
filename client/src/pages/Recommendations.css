@@ -1464,9 +1464,8 @@
    ========================================================= */
 
 .recommendation-card-header {
-    /* Fixed height keeps everything below aligned */
-    height: 125px;
-    min-height: 125px;
+    min-height: 140px;
+    height: auto;
 
     box-sizing: border-box;
 }
@@ -1508,8 +1507,8 @@
    ========================================================= */
 
 .recommendation-card-match {
-    height: 75px;
-    min-height: 75px;
+    min-height: 85px;
+    height: auto;
 
     box-sizing: border-box;
 }
