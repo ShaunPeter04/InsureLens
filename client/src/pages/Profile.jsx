@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import "./Profile.css";
 
 function Profile() {
@@ -127,8 +127,12 @@ function Profile() {
             <div className="profile-info-grid">
 
               <ProfileItem
-                label="First Name"
-                value={user.firstname}
+              label="Gender"
+              value={
+                user.gender
+                ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1)
+                : null
+              }
               />
 
               <ProfileItem
@@ -253,35 +257,34 @@ function Profile() {
                 onChange={handleChange}
               />
 
-              <div className="profile-form-group">
-                <label htmlFor="gender">
-                  Gender
-                </label>
+<div className="profile-form-group">
+  <label htmlFor="gender">
+    Gender
+  </label>
 
-                <select
-                  id="gender"
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                >
-                  <option value="">
-                    Select Gender
-                  </option>
+  <select
+    id="gender"
+    name="gender"
+    value={formData.gender}
+    onChange={handleChange}
+  >
+    <option value="">
+      Select Gender
+    </option>
 
-                  <option value="Male">
-                    Male
-                  </option>
+    <option value="male">
+      Male
+    </option>
 
-                  <option value="Female">
-                    Female
-                  </option>
+    <option value="female">
+      Female
+    </option>
 
-                  <option value="Other">
-                    Other
-                  </option>
-                </select>
-              </div>
-
+    <option value="other">
+      Other
+    </option>
+  </select>
+</div>
               <FormField
                 label="Address"
                 name="address"

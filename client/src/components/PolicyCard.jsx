@@ -3,10 +3,27 @@ import { useNavigate } from "react-router-dom";
 function PolicyCard({ policy }) {
   const navigate = useNavigate();
 
-  const minCoverage = Math.min(...policy.coverageAmounts);
-  const maxCoverage = Math.max(...policy.coverageAmounts);
+  const coverageAmounts = Array.isArray(policy?.coverageAmounts)
+    ? policy.coverageAmounts.filter(
+        (amount) => typeof amount === "number" && Number.isFinite(amount)
+      )
+    : [];
+
+  const minCoverage =
+    coverageAmounts.length > 0
+      ? Math.min(...coverageAmounts)
+      : null;
+
+  const maxCoverage =
+    coverageAmounts.length > 0
+      ? Math.max(...coverageAmounts)
+      : null;
 
   const formatCurrency = (amount) => {
+    if (amount === null || amount === undefined) {
+      return "Not available";
+    }
+
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
@@ -14,52 +31,80 @@ function PolicyCard({ policy }) {
     }).format(amount);
   };
 
+  const policyTypes = Array.isArray(policy?.policyType)
+    ? policy.policyType.join(", ")
+    : "Not available";
+
+  const initialWaitingPeriod =
+    policy?.waitingPeriods?.initialDays ?? null;
+
+  const pedWaitingPeriod =
+    policy?.waitingPeriods?.preExistingDiseasesMonths ?? null;
+
+  const roomType =
+    policy?.roomRentLimit?.roomTypeAllowed || "Not available";
+
+  const coPayment =
+    policy?.coPaymentPercentage ?? null;
+
   return (
     <div className="policy-card">
-
-      <h2>{policy.policyName}</h2>
+      <h2>{policy?.policyName || "Unnamed Policy"}</h2>
 
       <p>
-        <strong>Insurer:</strong> {policy.insuranceCompany}
+        <strong>Insurer:</strong>{" "}
+        {policy?.insuranceCompany || "Not available"}
       </p>
 
       <p>
         <strong>Policy Type:</strong>{" "}
-        {policy.policyType.join(", ")}
+        {policyTypes}
       </p>
 
       <p>
         <strong>Coverage:</strong>{" "}
-        {formatCurrency(minCoverage)} - {formatCurrency(maxCoverage)}
+        {coverageAmounts.length > 0
+          ? `${formatCurrency(minCoverage)} - ${formatCurrency(maxCoverage)}`
+          : "Not available"}
       </p>
 
       <p>
         <strong>Initial Waiting Period:</strong>{" "}
-        {policy.waitingPeriods.initialDays} days
+        {initialWaitingPeriod !== null
+          ? `${initialWaitingPeriod} days`
+          : "Not available"}
       </p>
 
       <p>
         <strong>PED Waiting Period:</strong>{" "}
-        {policy.waitingPeriods.preExistingDiseasesMonths} months
+        {pedWaitingPeriod !== null
+          ? `${pedWaitingPeriod} months`
+          : "Not available"}
       </p>
 
       <p>
         <strong>Room:</strong>{" "}
-        {policy.roomRentLimit.roomTypeAllowed}
+        {roomType}
       </p>
 
       <p>
         <strong>Co-pay:</strong>{" "}
-        {policy.coPaymentPercentage}%
+        {coPayment !== null
+          ? `${coPayment}%`
+          : "Not available"}
       </p>
 
       <button
         type="button"
-        onClick={() => navigate(`/policies/${policy._id}`)}
+        onClick={() => {
+          if (policy?._id) {
+            navigate(`/policies/${policy._id}`);
+          }
+        }}
+        disabled={!policy?._id}
       >
         View Details
       </button>
-
     </div>
   );
 }

@@ -1,47 +1,8 @@
 const express = require("express");
 const Policy = require("../models/Policy");
-const auth = require("../middleware/auth");
 
 const router = express.Router();
 
-
-// CREATE A NEW POLICY
-// Protected for now.
-// Later: restrict this route to admin users only.
-router.post("/", auth, async (req, res) => {
-  try {
-    const policy = new Policy(req.body);
-
-    await policy.save();
-
-    res.status(201).json({
-      message: "Policy created successfully",
-      policy
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    // Mongoose validation error
-    if (error.name === "ValidationError") {
-      return res.status(400).json({
-        message: "Invalid policy data",
-        error: error.message
-      });
-    }
-
-    // Duplicate policyId
-    if (error.code === 11000) {
-      return res.status(400).json({
-        message: "Policy ID already exists"
-      });
-    }
-
-    res.status(500).json({
-      message: "Server error"
-    });
-  }
-});
 
 
 // GET ALL POLICIES

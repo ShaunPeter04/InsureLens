@@ -5,6 +5,13 @@ from typing import Optional
 
 app=FastAPI()
 
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "service": "insurelens-ml-service"
+    }
+
 class UserRequirements(BaseModel):
     requiredCoverage: float
     coverageType: str
@@ -66,12 +73,6 @@ def calculate_policy_score(policy, requirements):
 
     if requirements.age < min_age or requirements.age > max_age:
         return None
-
-    min_age = eligibility.get("minAge", 18)
-    max_age = eligibility.get("maxAge", 65)
-
-    if requirements.age < min_age or requirements.age > max_age:
-        return None
     
     matched_coverage = get_matched_coverage(
         policy.get("coverageAmounts", []),
@@ -84,14 +85,12 @@ def calculate_policy_score(policy, requirements):
     score = 0
 
     # Coverage: 30 points
-    coverage_ratio = requirements.requiredCoverage / matched_coverage
+    # Policies below the requested coverage have already been filtered out.
+    # Any policy meeting or exceeding the requested coverage receives
+    # the full coverage eligibility score.
+    coverage_score = 30
 
-    coverage_score = min(
-    coverage_ratio,
-    1
-    ) * 30
     score += coverage_score
-
         # Co-payment: 15 points
     policy_copay = policy.get("coPaymentPercentage", 0)
     preferred_copay = requirements.coPaymentPreference

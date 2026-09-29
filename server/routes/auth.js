@@ -8,9 +8,20 @@ const router=express.Router();
 router.post('/register',async(req,res)=>{
     try{
         const {firstname,lastname,email,mobile,password,dateOfBirth,gender,address,city,state,pincode,occupation,agreeToTerms,annualIncome}=req.body;
-        const existingUser=await User.findOne({email});
-        if(existingUser){
-            return res.status(400).json({message:'User already exists'});
+        const existingEmail = await User.findOne({ email });
+
+        if (existingEmail) {
+            return res.status(400).json({
+                message: "An account with this email already exists"
+            });
+        }
+
+        const existingMobile = await User.findOne({ mobile });
+
+        if (existingMobile) {
+            return res.status(400).json({
+                message: "An account with this mobile number already exists"
+            });
         }
         const salt=await bcrypt.genSalt(10);
         const passwordHash=await bcrypt.hash(password,salt);
@@ -50,11 +61,34 @@ router.post('/register',async(req,res)=>{
 };
 
         res.status(201).json({message:'User registered successfully', token, user});
-    }catch(error){
-        console.error(error);
-        res.status(500).json({message:'Server error'});
-    }
-});
+    } catch (error) {
+    console.error("Registration error:", error);
+
+    if (error.code === 11000) {
+        const field = Object.keys(error.keyPattern || {})[0];
+
+        if (field === "email") {
+            return res.status(400).json({
+                message: "An account with this email already exists"
+            });
+        }
+
+        if (field === "mobile") {
+            return res.status(400).json({
+                message: "An account with this mobile number already exists"
+            });
+        }
+
+        return res.status(400).json({
+            message: "Account already exists"
+        });
+          }
+
+          return res.status(500).json({
+              message: "Server error"
+          });
+      }
+      });
 
 router.post('/login',async(req,res)=>{
     try{
@@ -144,6 +178,19 @@ router.put("/profile", auth, async (req, res) => {
       }
     });
 
+    if (updates.mobile) {
+      const existingMobile = await User.findOne({
+        mobile: updates.mobile,
+        _id: { $ne: req.user }
+      });
+
+      if (existingMobile) {
+        return res.status(400).json({
+          message: "This mobile number is already in use"
+        });
+      }
+    }
+
     const user = await User.findByIdAndUpdate(
       req.user,
       updates,
@@ -165,11 +212,17 @@ router.put("/profile", auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
+  console.error("Profile update error:", error);
 
-    res.status(500).json({
-      message: "Server error"
+  if (error.code === 11000) {
+    return res.status(400).json({
+      message: "This mobile number is already in use"
     });
+  }
+
+  return res.status(500).json({
+    message: "Server error"
+  });
   }
 });
 

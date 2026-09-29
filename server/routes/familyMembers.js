@@ -151,8 +151,6 @@ router.put("/:memberId", auth, async (req, res) => {
 });
 
 
-module.exports = router;
-
 // ADD a new family member
 router.post("/", auth, async (req, res) => {
     try {
@@ -223,3 +221,5 @@ router.post("/", auth, async (req, res) => {
         });
     }
 });
+
+module.exports = router;

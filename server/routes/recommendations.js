@@ -136,16 +136,8 @@ router.post("/", auth, async (req, res) => {
         const selfAge =
             calculateAge(
                 user.dateOfBirth
-            );
-
-        if (selfAge === null) {
-            return res.status(400).json({
-                message:
-                    "Please provide a valid date of birth in your profile"
-            });
-        }
-
-        // --------------------------------------------------
+            );        
+    // --------------------------------------------------
         // BUILD INSURED PEOPLE
         // --------------------------------------------------
 
@@ -165,6 +157,12 @@ router.post("/", auth, async (req, res) => {
                 ? true
                 : req.body.includeSelf ===
                   true;
+        if (includeSelf && selfAge === null) {
+            return res.status(400).json({
+                message:
+                    "Please provide a valid date of birth in your profile"
+            });
+        }
 
         if (includeSelf) {
             insuredMembers.push({
@@ -514,9 +512,11 @@ router.post("/", auth, async (req, res) => {
                 {
                     userRequirements,
                     policies
+                },
+                {
+                    timeout: 10000
                 }
             );
-
         // --------------------------------------------------
         // RESPONSE
         // --------------------------------------------------
@@ -526,23 +526,44 @@ router.post("/", auth, async (req, res) => {
         );
 
     } catch (error) {
-        console.error(
-            "Recommendation error:",
-            error.response?.data ||
-                error.message
-        );
+    console.error(
+        "Recommendation error:",
+        error.response?.data || error.message
+    );
 
-        return res
-            .status(500)
-            .json({
-                message:
-                    "Failed to generate recommendations",
-
-                error:
-                    error.response?.data ||
-                    error.message
-            });
+    // ML service timed out
+    if (error.code === "ECONNABORTED") {
+        return res.status(504).json({
+            message:
+                "Recommendation service took too long to respond. Please try again."
+        });
     }
-});
+
+    // ML service is unavailable
+    if (
+        error.code === "ECONNREFUSED" ||
+        error.code === "ENOTFOUND"
+    ) {
+        return res.status(503).json({
+            message:
+                "Recommendation service is temporarily unavailable. Please try again later."
+        });
+    }
+
+    // ML service returned an error response
+    if (error.response) {
+        return res.status(502).json({
+            message:
+                "Recommendation service could not process the request."
+        });
+    }
+
+    // Other backend errors
+    return res.status(500).json({
+        message:
+            "Failed to generate recommendations."
+    });
+    }
+}); 
 
 module.exports = router;
