@@ -7,6 +7,8 @@ const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
 const policyRoutes = require('./routes/policies');
 const auth = require('./middleware/auth');
+const recommendationRoutes = require("./routes/recommendations");
+const familyMemberRoutes = require("./routes/familyMembers");
 
 const app = express();
 
@@ -15,6 +17,8 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/policies', policyRoutes);
+app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/family-members", familyMemberRoutes);
 
 app.get('/api/protected', auth, (req, res) => {
     res.json({

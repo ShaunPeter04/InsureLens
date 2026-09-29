@@ -1,0 +1,1738 @@
+.recommendations-page {
+    min-height: calc(100vh - 70px);
+    padding: 2.5rem 3rem;
+    background: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+}
+
+
+/* =========================
+   PAGE HEADER
+   ========================= */
+
+.recommendations-header {
+    max-width: 1000px;
+    margin-bottom: 2rem;
+}
+
+.recommendations-header h1 {
+    margin: 0 0 0.5rem;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.recommendations-header h1::after {
+    content: "";
+    display: block;
+    width: 48px;
+    height: 3px;
+    margin-top: 0.65rem;
+    background: var(--brand);
+    border-radius: 2px;
+}
+
+.recommendations-header p {
+    margin: 0;
+    max-width: 700px;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+
+/* =========================
+   FORM CONTAINER
+   ========================= */
+
+.recommendation-form-card {
+    max-width: 1000px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.recommendation-form {
+    display: block;
+}
+
+
+/* =========================
+   FORM SECTIONS
+   ========================= */
+
+.recommendation-form-section {
+    padding: 1.8rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.form-section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 32px;
+    height: 32px;
+
+    background: var(--brand);
+    color: #FFFFFF;
+
+    border-radius: 50%;
+
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.form-section-header h2 {
+    margin: 0 0 0.25rem;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.form-section-header p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+
+/* =========================
+   FORM GRID
+   ========================= */
+
+.form-section-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.form-section-grid.three-columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+
+/* =========================
+   INPUTS
+   ========================= */
+
+.recommendation-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.recommendation-form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.recommendation-form-group input,
+.recommendation-form-group select {
+    width: 100%;
+    height: 44px;
+    padding: 0 0.8rem;
+
+    box-sizing: border-box;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+
+    color: var(--ink);
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+    border-radius: 7px;
+
+    outline: none;
+}
+
+.recommendation-form-group input:focus,
+.recommendation-form-group select:focus {
+    border-color: var(--brand);
+}
+
+.recommendation-form-group input::placeholder {
+    color: var(--ink-soft);
+}
+
+.recommendation-form-group small {
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+}
+
+
+/* =========================
+   PRE-EXISTING DISEASES
+   ========================= */
+
+.disease-group {
+    margin-bottom: 1.25rem;
+}
+
+.disease-input-row {
+    display: flex;
+    gap: 0.65rem;
+}
+
+.disease-input-row input {
+    flex: 1;
+}
+
+.add-disease-button {
+    padding: 0 1.1rem;
+
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+
+    color: var(--brand);
+    background: var(--surface);
+
+    border: 1px solid var(--brand);
+    border-radius: 7px;
+
+    cursor: pointer;
+}
+
+.add-disease-button:hover {
+    color: #FFFFFF;
+    background: var(--brand);
+}
+
+.disease-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+}
+
+.disease-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+
+    padding: 0.4rem 0.65rem;
+
+    color: var(--brand-dark);
+    background: var(--bg);
+
+    border: 1px solid var(--border);
+    border-radius: 20px;
+
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.disease-tag button {
+    padding: 0;
+
+    color: var(--ink-soft);
+    background: transparent;
+
+    border: none;
+    cursor: pointer;
+
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.disease-tag button:hover {
+    color: var(--error);
+}
+
+/* =========================
+   QUICK SELECT OPTIONS
+   ========================= */
+
+/* Shared container for selectable buttons */
+.coverage-options,
+.disease-options,
+.copayment-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 0.25rem;
+}
+
+
+/* =========================
+   COVERAGE OPTIONS
+   ========================= */
+
+.coverage-options {
+    margin-bottom: 0.85rem;
+}
+
+.coverage-option {
+    min-width: 72px;
+    padding: 0.65rem 1rem;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    color: var(--ink);
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.15s ease;
+}
+
+.coverage-option:hover {
+    border-color: var(--brand);
+    color: var(--brand-dark);
+}
+
+.coverage-option:active {
+    transform: translateY(1px);
+}
+
+.coverage-option.active {
+    color: #FFFFFF;
+    background: var(--brand);
+    border-color: var(--brand);
+}
+
+
+/* Custom coverage input */
+
+.custom-coverage {
+    margin-top: 0.35rem;
+}
+
+.custom-coverage label {
+    margin-bottom: 0.15rem;
+}
+
+
+/* =========================
+   DISEASE OPTIONS
+   ========================= */
+
+.disease-options {
+    margin-top: 0.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.disease-option {
+    padding: 0.6rem 0.9rem;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+
+    color: var(--ink);
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+    border-radius: 20px;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+.disease-option:hover {
+    border-color: var(--brand);
+    color: var(--brand-dark);
+}
+
+.disease-option.active {
+    color: #FFFFFF;
+    background: var(--brand);
+    border-color: var(--brand);
+}
+
+
+/* Other disease input */
+
+.disease-options + .disease-input-row {
+    margin-top: 0.2rem;
+    margin-bottom: 0.5rem;
+}
+
+
+/* =========================
+   CO-PAYMENT OPTIONS
+   ========================= */
+
+.copayment-options {
+    margin-top: 0.3rem;
+    margin-bottom: 0.35rem;
+}
+
+.copayment-option {
+    padding: 0.65rem 1rem;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 0.83rem;
+    font-weight: 600;
+
+    color: var(--ink);
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+.copayment-option:hover {
+    border-color: var(--brand);
+    color: var(--brand-dark);
+}
+
+.copayment-option.active {
+    color: #FFFFFF;
+    background: var(--brand);
+    border-color: var(--brand);
+}
+
+
+/* =========================
+   IMPROVED FORM SPACING
+   ========================= */
+
+.recommendation-form-section
+> .recommendation-form-group {
+    margin-top: 1.25rem;
+}
+
+.recommendation-form-section
+> .recommendation-form-group:first-of-type {
+    margin-top: 0;
+}
+
+.recommendation-form-group small {
+    line-height: 1.45;
+}
+
+
+/* Family Floater helper text */
+
+.recommendation-form-group select + small {
+    margin-top: 0.1rem;
+}
+
+
+/* =========================
+   OPTION ACCESSIBILITY
+   ========================= */
+
+.coverage-option:focus-visible,
+.disease-option:focus-visible,
+.copayment-option:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+
+
+/* =========================
+   RESPONSIVE OPTION CONTROLS
+   ========================= */
+
+@media (max-width: 650px) {
+
+    .coverage-options,
+    .disease-options,
+    .copayment-options {
+        gap: 0.5rem;
+    }
+
+    .coverage-option {
+        flex: 1 1 calc(33.333% - 0.5rem);
+        min-width: 75px;
+    }
+
+    .disease-option {
+        flex: 0 1 auto;
+    }
+
+    .copayment-option {
+        flex: 1 1 auto;
+    }
+
+    .disease-input-row {
+        flex-direction: column;
+    }
+
+    .add-disease-button {
+        height: 42px;
+    }
+}
+
+/* =========================
+   CHECKBOXES
+   ========================= */
+
+.checkbox-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.25rem;
+}
+
+.checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+
+    padding: 0.75rem 1rem;
+
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+
+    color: var(--ink);
+    font-size: 0.85rem;
+
+    cursor: pointer;
+}
+
+.checkbox-option input {
+    width: 16px;
+    height: 16px;
+
+    accent-color: var(--brand);
+    cursor: pointer;
+}
+
+
+/* =========================
+   SUBMIT AREA
+   ========================= */
+
+.recommendation-submit {
+    padding: 1.5rem 1.8rem;
+}
+
+.recommendation-submit button {
+    padding: 0.75rem 1.3rem;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    color: #FFFFFF;
+    background: var(--brand);
+
+    border: none;
+    border-radius: 7px;
+
+    cursor: pointer;
+}
+
+.recommendation-submit button:hover {
+    background: var(--brand-dark);
+}
+
+.recommendation-submit button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.recommendation-status {
+    margin: 0;
+    padding: 0 1.8rem 1.5rem;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+}
+
+.recommendation-error {
+    margin: 0 1.8rem 1.5rem;
+    padding: 0.75rem 1rem;
+
+    color: var(--error);
+    background: var(--error-bg);
+
+    border-radius: 7px;
+}
+
+
+/* =========================
+   RECOMMENDATION RESULTS
+   ========================= */
+
+.recommendation-results {
+    width: 100%;
+    margin-top: 2.5rem;
+}
+
+.recommendation-results > h2 {
+    margin: 0 0 1.25rem;
+
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.65rem;
+
+    color: var(--ink);
+}
+
+
+/* =========================
+   CARDS GRID
+   ========================= */
+
+.recommendation-cards {
+    display: grid;
+
+    grid-template-columns: repeat(
+        4,
+        minmax(0, 1fr)
+    );
+
+    gap: 1.25rem;
+    align-items: start;
+}
+
+/* =========================
+   RECOMMENDATION CARD
+   ========================= */
+
+.recommendation-card {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    height: auto;
+
+    padding: 1.6rem;
+
+    box-sizing: border-box;
+
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.recommendation-card > div:first-child > span {
+    display: inline-block;
+    margin-bottom: 0.25rem;
+
+    font-size: 0.9rem;
+    font-weight: 700;
+
+    color: var(--brand);
+}
+
+.recommendation-card h2 {
+    margin: 0.35rem 0 0.3rem;
+
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.2rem;
+    line-height: 1.3;
+
+    color: var(--ink);
+}
+
+.recommendation-card p {
+    margin: 0.45rem 0;
+
+    color: var(--ink-soft);
+    line-height: 1.5;
+}
+
+.recommendation-card strong {
+    color: var(--ink);
+}
+
+.recommendation-card > div:nth-child(2) {
+    margin-top: 0.75rem;
+}
+
+
+/* =========================
+   CARD BUTTONS
+   ========================= */
+
+.recommendation-card > button {
+    width: 100%;
+
+    padding: 0.72rem 1rem;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+
+    color: #FFFFFF;
+    background: var(--brand);
+
+    border: none;
+    border-radius: 7px;
+
+    cursor: pointer;
+
+    transition: background 0.2s ease;
+}
+
+.recommendation-card > button:hover {
+    background: var(--brand-dark);
+}
+
+/* Breakdown button */
+
+.recommendation-card > button:first-of-type {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+
+/* =========================
+   SCORE BREAKDOWN
+   ========================= */
+
+.score-breakdown {
+    margin: 0 0 0.75rem;
+    padding: 1rem;
+
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.score-breakdown h3 {
+    margin: 0 0 1rem;
+
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1rem;
+    font-weight: 600;
+
+    color: var(--ink);
+}
+
+
+/* =========================
+   BREAKDOWN ROW
+   ========================= */
+
+.score-breakdown > p,
+.breakdown-group > p {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    align-items: center;
+
+    gap: 0.75rem;
+
+    margin: 0;
+    padding: 0.65rem 0;
+
+    border-bottom: 1px solid var(--border);
+
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.score-breakdown p span {
+    color: var(--brand-dark);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+
+/* =========================
+   BREAKDOWN GROUPS
+   ========================= */
+
+.breakdown-group {
+    margin-top: 0.35rem;
+}
+
+.breakdown-group > p:first-child {
+    margin-top: 0.25rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+
+/* =========================
+   BREAKDOWN SUB ITEMS
+   ========================= */
+
+.score-breakdown .breakdown-subitem {
+    position: relative;
+
+    padding-left: 1.1rem;
+
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+}
+
+.score-breakdown .breakdown-subitem::before {
+    content: "↳";
+
+    position: absolute;
+    left: 0;
+
+    color: var(--ink-soft);
+}
+
+.score-breakdown .breakdown-subitem span {
+    font-size: 0.78rem;
+}
+
+.breakdown-group:last-child
+.breakdown-subitem:last-child {
+    border-bottom: none;
+}
+
+
+/* Large tablet / small desktop */
+@media (max-width: 1200px) {
+    .recommendation-cards {
+        grid-template-columns: repeat(
+            3,
+            minmax(0, 1fr)
+        );
+    }
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+    .recommendation-cards {
+        grid-template-columns: repeat(
+            2,
+            minmax(0, 1fr)
+        );
+    }
+}
+
+/* Mobile */
+@media (max-width: 650px) {
+    .recommendations-page {
+    padding: 1.5rem 1rem;
+}
+
+.form-section-grid,
+.form-section-grid.three-columns {
+    grid-template-columns: 1fr;
+}
+
+.recommendation-form-section {
+    padding: 1.3rem;
+}
+
+.form-section-header {
+    gap: 0.75rem;
+}
+
+.recommendation-submit {
+    padding: 1.3rem;
+}
+
+.recommendation-submit button {
+    width: 100%;
+}
+    .recommendation-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .recommendation-card {
+        padding: 1.3rem;
+    }
+}
+
+/* =========================================================
+   FAMILY FLOATER MEMBER SELECTION
+   ========================================================= */
+
+.family-selection {
+    margin-top: 1.5rem;
+    margin-bottom: 1.75rem;
+    padding: 1.4rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+}
+
+/* Header */
+
+.family-selection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.family-selection-header h3 {
+    margin: 0 0 0.35rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.family-selection-header p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+}
+
+.family-count {
+    flex-shrink: 0;
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(22, 120, 99, 0.1);
+    color: var(--brand);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   MEMBER GRID
+   ========================================================= */
+
+.family-member-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+
+/* =========================================================
+   MEMBER CARD
+   ========================================================= */
+
+.family-member-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+
+    padding: 1rem;
+
+    border: 1px solid var(--border);
+    border-radius: 12px;
+
+    background: var(--bg);
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.family-member-option:hover {
+    border-color: var(--brand);
+    transform: translateY(-1px);
+}
+
+.family-member-option.selected {
+    border-color: var(--brand);
+    background: rgba(22, 120, 99, 0.06);
+    box-shadow: 0 0 0 1px rgba(22, 120, 99, 0.08);
+}
+
+
+/* =========================================================
+   CHECKBOX
+   ========================================================= */
+
+.family-member-option input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 3px 0 0;
+    flex-shrink: 0;
+
+    accent-color: var(--brand);
+
+    cursor: pointer;
+}
+
+.family-member-option input[type="checkbox"]:disabled {
+    cursor: default;
+    opacity: 0.8;
+}
+
+
+/* =========================================================
+   MEMBER INFORMATION
+   ========================================================= */
+
+.family-member-details {
+    min-width: 0;
+    flex: 1;
+}
+
+.family-member-name-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+
+    margin-bottom: 0.45rem;
+}
+
+.family-member-name-row strong {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.family-relationship {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 0.2rem 0.5rem;
+
+    border-radius: 999px;
+
+    background: rgba(22, 120, 99, 0.1);
+    color: var(--brand);
+
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   AGE / GENDER / DEPENDENT
+   ========================================================= */
+
+.family-member-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+
+    margin-bottom: 0.4rem;
+}
+
+.family-member-meta span {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 0.2rem 0.45rem;
+
+    border-radius: 6px;
+
+    background: var(--surface);
+
+    color: var(--ink-soft);
+
+    font-size: 0.76rem;
+}
+
+
+/* =========================================================
+   SELF CARD
+   ========================================================= */
+
+.self-member {
+    cursor: default;
+}
+
+.self-member:hover {
+    transform: none;
+}
+
+.self-member small {
+    display: block;
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+}
+
+
+/* =========================================================
+   PRE-EXISTING DISEASE
+   ========================================================= */
+
+.family-member-ped {
+    display: block;
+
+    margin-top: 0.35rem;
+
+    color: var(--ink-soft);
+
+    font-size: 0.76rem;
+    line-height: 1.4;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   LOADING / ERROR
+   ========================================================= */
+
+.family-members-message {
+    grid-column: 1 / -1;
+
+    margin: 0;
+    padding: 1rem;
+
+    border-radius: 10px;
+
+    background: var(--bg);
+
+    color: var(--ink-soft);
+
+    font-size: 0.88rem;
+}
+
+.family-members-error {
+    margin: 1rem 0 0;
+    padding: 0.8rem 1rem;
+
+    border-radius: 8px;
+
+    background: rgba(190, 50, 50, 0.08);
+
+    color: var(--error);
+
+    font-size: 0.85rem;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.family-empty-state {
+    margin-top: 1rem;
+    padding: 1rem;
+
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+
+    background: var(--bg);
+}
+
+.family-empty-state strong {
+    display: block;
+
+    margin-bottom: 0.3rem;
+
+    color: var(--ink);
+
+    font-size: 0.9rem;
+}
+
+.family-empty-state p {
+    margin: 0;
+
+    color: var(--ink-soft);
+
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   BOTTOM NOTE
+   ========================================================= */
+
+.family-selection-note {
+    display: block;
+
+    margin-top: 1rem;
+
+    color: var(--ink-soft);
+
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1000px) {
+    .family-member-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .family-selection {
+        padding: 1rem;
+    }
+
+    .family-selection-header {
+        flex-direction: column;
+    }
+
+    .family-member-options {
+        grid-template-columns: 1fr;
+    }
+
+    .family-count {
+        align-self: flex-start;
+    }
+}
+
+/* =========================================================
+   ADD FAMILY MEMBER
+   ========================================================= */
+
+.add-family-member-button {
+    margin-top: 1rem;
+    padding: 0.7rem 1rem;
+
+    border: 1px dashed var(--brand);
+    border-radius: 8px;
+
+    background: transparent;
+    color: var(--brand);
+
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.add-family-member-button:hover {
+    background: rgba(22, 120, 99, 0.06);
+}
+
+
+/* FORM CONTAINER */
+
+.add-family-member-form {
+    margin-top: 1.25rem;
+    padding: 1.25rem;
+
+    border: 1px solid var(--border);
+    border-radius: 12px;
+
+    background: var(--bg);
+}
+
+.add-family-member-header {
+    margin-bottom: 1.2rem;
+}
+
+.add-family-member-header h4 {
+    margin: 0 0 0.3rem;
+
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.add-family-member-header p {
+    margin: 0;
+
+    color: var(--ink-soft);
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+
+/* DEPENDENT */
+
+.family-dependent-checkbox {
+    margin-top: 0.75rem;
+}
+
+
+/* PED SECTION */
+
+.family-ped-section {
+    margin-top: 1.25rem;
+}
+
+
+/* ACTION BUTTONS */
+
+.family-member-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.75rem;
+
+    margin-top: 1.4rem;
+}
+
+.family-member-cancel-button,
+.family-member-save-button {
+    padding: 0.7rem 1.1rem;
+
+    border-radius: 8px;
+
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.family-member-cancel-button {
+    border: 1px solid var(--border);
+
+    background: var(--surface);
+    color: var(--ink);
+}
+
+.family-member-cancel-button:hover {
+    background: var(--bg);
+}
+
+.family-member-save-button {
+    border: 1px solid var(--brand);
+
+    background: var(--brand);
+    color: white;
+}
+
+.family-member-save-button:hover {
+    opacity: 0.9;
+}
+
+.family-member-cancel-button:disabled,
+.family-member-save-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 650px) {
+    .add-family-member-form {
+        padding: 1rem;
+    }
+
+    .family-member-form-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .family-member-cancel-button,
+    .family-member-save-button {
+        width: 100%;
+    }
+}
+/* =========================================================
+   FAMILY MEMBER CARD ACTIONS
+   ========================================================= */
+
+.family-member-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
+    align-self: flex-start;
+}
+
+.family-member-edit-button,
+.family-member-delete-button {
+    padding: 0.38rem 0.65rem;
+    border-radius: 6px;
+    background: transparent;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.family-member-edit-button {
+    border: 1px solid var(--border);
+    color: var(--brand);
+}
+
+.family-member-edit-button:hover {
+    border-color: var(--brand);
+    background: rgba(22, 120, 99, 0.06);
+}
+
+.family-member-delete-button {
+    border: 1px solid var(--border);
+    color: #b42318;
+}
+
+.family-member-delete-button:hover {
+    border-color: #b42318;
+    background: rgba(180, 35, 24, 0.05);
+}
+
+.family-member-delete-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+@media (max-width: 650px) {
+    .family-member-card-actions {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 0.6rem;
+        padding-left: 1.7rem;
+    }
+}
+/* =========================================================
+   CENTER RECOMMENDATIONS PAGE CONTENT
+   ========================================================= */
+
+.recommendations-header,
+.recommendation-form-card,
+.recommendation-results {
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.recommendations-header,
+.recommendation-form-card,
+.recommendation-results {
+    width: 100%;
+    max-width: 1350px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* =========================================================
+   FINAL RECOMMENDATION RESULTS LAYOUT
+   ========================================================= */
+
+/* Recommendation cards grid */
+.recommendation-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.25rem;
+
+    /* IMPORTANT:
+       Cards do not stretch when another card opens breakdown */
+    align-items: start;
+}
+
+
+/* =========================================================
+   RECOMMENDATION CARD
+   ========================================================= */
+
+.recommendation-card {
+    width: 100%;
+    height: auto;
+    align-self: start;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 1.6rem;
+    box-sizing: border-box;
+
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+
+/* =========================================================
+   CARD HEADER
+   Rank + Policy Name + Insurance Company
+   ========================================================= */
+
+.recommendation-card-header {
+    /* Fixed height keeps everything below aligned */
+    height: 125px;
+    min-height: 125px;
+
+    box-sizing: border-box;
+}
+
+.recommendation-card-header > span {
+    display: inline-block;
+    margin-bottom: 0.25rem;
+
+    color: var(--brand);
+
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.recommendation-card-header h2 {
+    margin: 0.35rem 0 0.3rem;
+
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.3;
+
+    color: var(--ink);
+}
+
+.recommendation-card-header p {
+    margin: 0.45rem 0;
+
+    color: var(--ink-soft);
+
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   MATCH INFORMATION
+   Coverage + Match Score
+   ========================================================= */
+
+.recommendation-card-match {
+    height: 75px;
+    min-height: 75px;
+
+    box-sizing: border-box;
+}
+
+.recommendation-card-match p {
+    margin: 0.35rem 0;
+
+    color: var(--ink-soft);
+
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.recommendation-card-match strong {
+    color: var(--ink);
+}
+
+
+/* =========================================================
+   CARD ACTION BUTTONS
+   ========================================================= */
+
+.recommendation-card-actions {
+    display: flex;
+    flex-direction: column;
+
+    gap: 0.65rem;
+
+    margin: 0;
+}
+
+.recommendation-card .recommendation-card-actions button {
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+
+    padding: 0 1rem;
+
+    box-sizing: border-box;
+
+    border: none;
+    border-radius: 7px;
+
+    background: var(--brand);
+    color: #ffffff;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.15s ease,
+        opacity 0.15s ease;
+}
+
+.recommendation-card .recommendation-card-actions button:hover {
+    background: var(--brand-dark);
+    transform: translateY(-1px);
+}
+
+.recommendation-card .recommendation-card-actions button:active {
+    transform: translateY(0);
+}
+
+
+/* =========================================================
+   SCORE BREAKDOWN
+   ========================================================= */
+
+.recommendation-card .score-breakdown {
+    margin: 0.8rem 0 0;
+    padding: 1rem;
+
+    background: var(--bg);
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.score-breakdown h3 {
+    margin: 0 0 1rem;
+
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1rem;
+    font-weight: 600;
+
+    color: var(--ink);
+}
+
+
+/* =========================================================
+   SCORE BREAKDOWN ROWS
+   ========================================================= */
+
+.score-breakdown > p,
+.breakdown-group > p {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    align-items: center;
+
+    gap: 0.75rem;
+
+    margin: 0;
+    padding: 0.65rem 0;
+
+    border-bottom: 1px solid var(--border);
+
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.score-breakdown p span {
+    color: var(--brand-dark);
+
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   BREAKDOWN GROUPS
+   ========================================================= */
+
+.breakdown-group {
+    margin-top: 0.35rem;
+}
+
+.breakdown-group > p:first-child {
+    margin-top: 0.25rem;
+
+    font-weight: 600;
+
+    color: var(--ink);
+}
+
+
+/* =========================================================
+   BREAKDOWN SUB ITEMS
+   ========================================================= */
+
+.score-breakdown .breakdown-subitem {
+    position: relative;
+
+    padding-left: 1.1rem;
+
+    color: var(--ink-soft);
+
+    font-size: 0.78rem;
+}
+
+.score-breakdown .breakdown-subitem::before {
+    content: "↳";
+
+    position: absolute;
+    left: 0;
+
+    color: var(--ink-soft);
+}
+
+.score-breakdown .breakdown-subitem span {
+    font-size: 0.78rem;
+}
+
+.breakdown-group:last-child
+.breakdown-subitem:last-child {
+    border-bottom: none;
+}
+
+
+/* =========================================================
+   RESPONSIVE RECOMMENDATION CARDS
+   ========================================================= */
+
+/* Large tablet / small desktop */
+@media (max-width: 1200px) {
+
+    .recommendation-cards {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+
+/* Tablet */
+@media (max-width: 900px) {
+
+    .recommendation-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+/* Mobile */
+@media (max-width: 650px) {
+
+    .recommendation-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .recommendation-card {
+        padding: 1.3rem;
+    }
+
+    /*
+       Fixed alignment heights are unnecessary when
+       there is only one card per row.
+    */
+    .recommendation-card-header {
+        height: auto;
+        min-height: 0;
+    }
+
+    .recommendation-card-match {
+        height: auto;
+        min-height: 0;
+
+        margin-bottom: 0.75rem;
+    }
+}

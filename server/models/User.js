@@ -16,9 +16,9 @@ const familyMembersSchema=mongoose.Schema({
         type:String,
         required:true
     },
-    occupation:{
-        type:String,
-        required:true
+    occupation: {
+    type: String,
+    default: ""
     },
     isDependent:{
         type:Boolean,

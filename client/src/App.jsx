@@ -8,6 +8,8 @@ import AuthenticatedLayout from './pages/AuthenticatedLayout';
 import Profile from './pages/Profile';
 import Policies from './pages/Policies';
 import PolicyDetails from './pages/PolicyDetails';
+import Recommendations from './pages/Recommendations';
+
 
 
 function App() {
@@ -23,6 +25,7 @@ function App() {
       <Route path="/profile" element={<Profile/>} />
       <Route path="/policies" element={<Policies/>} />
       <Route path="/policies/:id" element={<PolicyDetails/>} />
+      <Route path="/recommendations" element={<Recommendations/>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

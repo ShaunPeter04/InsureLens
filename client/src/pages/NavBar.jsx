@@ -25,6 +25,8 @@ function NavBar() {
                 <NavLink to="/dashboard" className={linkClass}>Dashboard</NavLink>
                 <NavLink to="/profile" className={linkClass}>Profile</NavLink>
                 <NavLink to="/policies" className={linkClass}>Policies</NavLink>
+                <NavLink to="/recommendations" className={linkClass}>Recommendations</NavLink>
+            
             </div>
             <div className="navbar-user">
                 <span className="navbar-greeting">Hi, {firstName}</span>

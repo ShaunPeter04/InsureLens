@@ -330,4 +330,4 @@ function PolicyDetails() {
   );
 }
 
-export default PolicyDetails;
+export default PolicyDetails;   
