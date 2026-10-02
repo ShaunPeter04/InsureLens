@@ -1,9 +1,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function RecommendationCard({ recommendation, rank }) {
+function RecommendationCard({
+  recommendation,
+  rank,
+  onAddPolicy,
+}) {
   const navigate = useNavigate();
+
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [showAddPolicy, setShowAddPolicy] = useState(false);
+
+  const [policyForm, setPolicyForm] = useState({
+    selectedCoverage: recommendation.matchedCoverage || "",
+    policyNumber: "",
+    policyStartDate: "",
+    policyEndDate: "",
+  });
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-IN", {
@@ -14,6 +27,38 @@ function RecommendationCard({ recommendation, rank }) {
   };
 
   const breakdown = recommendation.scoreBreakdown;
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setPolicyForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleAddPolicy = async (event) => {
+    event.preventDefault();
+
+    const success = await onAddPolicy({
+      policyId: recommendation.policyId,
+      selectedCoverage: Number(policyForm.selectedCoverage),
+      policyNumber: policyForm.policyNumber,
+      policyStartDate: policyForm.policyStartDate,
+      policyEndDate: policyForm.policyEndDate,
+    });
+
+    if (success) {
+      setShowAddPolicy(false);
+
+      setPolicyForm({
+        selectedCoverage: recommendation.matchedCoverage || "",
+        policyNumber: "",
+        policyStartDate: "",
+        policyEndDate: "",
+      });
+    }
+  };
 
   return (
     <div className="recommendation-card">
@@ -59,7 +104,74 @@ function RecommendationCard({ recommendation, rank }) {
         >
           View Policy Details
         </button>
+
+        <button
+          type="button"
+          onClick={() => setShowAddPolicy((prev) => !prev)}
+        >
+          {showAddPolicy
+            ? "Cancel"
+            : "Add to My Policies"}
+        </button>
       </div>
+
+      {/* ADD POLICY FORM */}
+      {showAddPolicy && (
+        <form
+          className="add-policy-form"
+          onSubmit={handleAddPolicy}
+        >
+          <h3>Add to My Policies</h3>
+
+          <label>
+            Selected Coverage
+            <input
+              type="text"
+              value={formatCurrency(
+                Number(policyForm.selectedCoverage)
+              )}
+              disabled
+            />
+          </label>
+
+          <label>
+            Policy Number
+            <input
+              type="text"
+              name="policyNumber"
+              value={policyForm.policyNumber}
+              onChange={handleChange}
+              placeholder="Enter policy number"
+            />
+          </label>
+
+          <label>
+            Policy Start Date
+            <input
+              type="date"
+              name="policyStartDate"
+              value={policyForm.policyStartDate}
+              onChange={handleChange}
+              required
+            />
+          </label>
+
+          <label>
+            Policy End Date
+            <input
+              type="date"
+              name="policyEndDate"
+              value={policyForm.policyEndDate}
+              onChange={handleChange}
+              required
+            />
+          </label>
+
+          <button type="submit">
+            Save Policy
+          </button>
+        </form>
+      )}
 
       {/* SCORE BREAKDOWN */}
       {showBreakdown && (
@@ -95,13 +207,11 @@ function RecommendationCard({ recommendation, rank }) {
               <strong>Waiting Periods</strong>
 
               <span>
-                {breakdown.waitingPeriods.score} / 10
-              </span>
+                {breakdown.waitingPeriods.score} / 10</span>
             </p>
 
             <p className="breakdown-subitem">
               Initial Waiting
-
               <span>
                 {breakdown.waitingPeriods.initialWaiting} / 5
               </span>
@@ -109,7 +219,6 @@ function RecommendationCard({ recommendation, rank }) {
 
             <p className="breakdown-subitem">
               Specific Illness Waiting
-
               <span>
                 {breakdown.waitingPeriods.specificIllnessWaiting} / 5
               </span>
@@ -119,7 +228,6 @@ function RecommendationCard({ recommendation, rank }) {
           <div className="breakdown-group">
             <p>
               <strong>Hospitalization</strong>
-
               <span>
                 {breakdown.hospitalization.score} / 15
               </span>
@@ -127,7 +235,6 @@ function RecommendationCard({ recommendation, rank }) {
 
             <p className="breakdown-subitem">
               Inpatient Coverage
-
               <span>
                 {breakdown.hospitalization.inpatient} / 5
               </span>
@@ -135,7 +242,6 @@ function RecommendationCard({ recommendation, rank }) {
 
             <p className="breakdown-subitem">
               Daycare Coverage
-
               <span>
                 {breakdown.hospitalization.daycare} / 3
               </span>
@@ -143,7 +249,6 @@ function RecommendationCard({ recommendation, rank }) {
 
             <p className="breakdown-subitem">
               Pre-Hospitalization
-
               <span>
                 {breakdown.hospitalization.preHospitalization} / 3
               </span>
@@ -151,7 +256,6 @@ function RecommendationCard({ recommendation, rank }) {
 
             <p className="breakdown-subitem">
               Post-Hospitalization
-
               <span>
                 {breakdown.hospitalization.postHospitalization} / 4
               </span>

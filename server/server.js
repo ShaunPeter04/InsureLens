@@ -23,6 +23,7 @@ const policyRoutes = require('./routes/policies');
 const auth = require('./middleware/auth');
 const recommendationRoutes = require("./routes/recommendations");
 const familyMemberRoutes = require("./routes/familyMembers");
+const userPolicyRoutes = require("./routes/userPolicies");
 const rateLimit = require('express-rate-limit');
 
 const app = express();
@@ -50,6 +51,7 @@ app.use('/api/auth',authLimiter, authRoutes);
 app.use('/api/policies', policyRoutes);
 app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/family-members", familyMemberRoutes);
+app.use("/api/user-policies", userPolicyRoutes);
 
 app.get('/api/protected', auth, (req, res) => {
     res.json({
