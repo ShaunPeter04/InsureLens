@@ -9,6 +9,8 @@ import Profile from './pages/Profile';
 import Policies from './pages/Policies';
 import PolicyDetails from './pages/PolicyDetails';
 import Recommendations from './pages/Recommendations';
+import MyPolicies from './pages/MyPolicies';
+import Claimability from './pages/Claimability';
 
 
 
@@ -26,6 +28,8 @@ function App() {
       <Route path="/policies" element={<Policies/>} />
       <Route path="/policies/:id" element={<PolicyDetails/>} />
       <Route path="/recommendations" element={<Recommendations/>} />
+      <Route path='/my-policies' element={<MyPolicies/>}/>
+      <Route path="/claimability" element={<Claimability />}/>
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

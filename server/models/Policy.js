@@ -204,6 +204,11 @@ const policySchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
+    purchaseUrl: {
+    type: String,
+    trim: true,
+    default: ""
+    },
     documentTextChunks: {
       type: [String], // Useful if caching chunked text for Vector Cosine Search / RAG
       default: [],

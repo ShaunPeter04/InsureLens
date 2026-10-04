@@ -104,6 +104,20 @@ function RecommendationCard({
         >
           View Policy Details
         </button>
+        {recommendation.purchaseUrl && (
+          <button
+            type="button"
+            onClick={() =>
+              window.open(
+                recommendation.purchaseUrl,
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
+          >
+            Visit Insurer / Buy
+          </button>
+        )}
 
         <button
           type="button"

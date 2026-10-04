@@ -26,6 +26,10 @@ function NavBar() {
                 <NavLink to="/profile" className={linkClass}>Profile</NavLink>
                 <NavLink to="/policies" className={linkClass}>Policies</NavLink>
                 <NavLink to="/recommendations" className={linkClass}>Recommendations</NavLink>
+                <NavLink to="/my-policies" className={linkClass}>
+                  My Policies
+                </NavLink>
+                <NavLink to="/claimability" className={linkClass}>Claimability</NavLink>
             
             </div>
             <div className="navbar-user">

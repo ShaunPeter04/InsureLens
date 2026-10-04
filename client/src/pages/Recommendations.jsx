@@ -676,6 +676,38 @@ function Recommendations() {
     }
   };
 
+    // ==================================================
+  // ADD RECOMMENDED POLICY TO MY POLICIES
+  // ==================================================
+
+  const handleAddPolicy = async (policyData) => {
+    try {
+      setError("");
+
+      const response = await axios.post(
+        "/api/user-policies",
+        policyData
+      );
+
+      alert(
+        response.data.message ||
+          "Policy added to My Policies."
+      );
+
+      return true;
+    } catch (err) {
+      console.error("Add policy error:", err);
+
+      const message =
+        err.response?.data?.message ||
+        "Failed to add policy to My Policies.";
+
+      alert(message);
+
+      return false;
+    }
+  };
+
   // ==================================================
   // JSX
   // ==================================================
@@ -1588,10 +1620,9 @@ function Recommendations() {
               (recommendation, index) => (
                 <RecommendationCard
                   key={recommendation.policyId}
-                  recommendation={
-                    recommendation
-                  }
+                  recommendation={recommendation}
                   rank={index + 1}
+                  onAddPolicy={handleAddPolicy}
                 />
               )
             )}

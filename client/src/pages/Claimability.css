@@ -1,0 +1,518 @@
+.claimability-page {
+  min-height: calc(100vh - 70px);
+  padding: 2.5rem 3rem 4rem;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Inter", sans-serif;
+}
+
+.claimability-page > h1 {
+  margin: 0 0 0.5rem;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.claimability-page > h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin-top: 0.65rem;
+  background: var(--brand);
+  border-radius: 2px;
+}
+
+.claimability-page > p {
+  margin: 0 0 2rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+/* ---------------- FORM ---------------- */
+
+.claimability-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem 1.5rem;
+
+  width: 100%;
+  padding: 2rem;
+  margin-bottom: 2.5rem;
+
+  background: var(--surface, #fff);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+
+  box-sizing: border-box;
+}
+
+.claimability-form > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.claimability-form label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.claimability-form input,
+.claimability-form select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0.7rem 0.85rem;
+
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 8px;
+
+  background: var(--surface, #fff);
+  color: var(--ink);
+
+  font: inherit;
+  box-sizing: border-box;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.claimability-form input:focus,
+.claimability-form select:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--brand) 15%, transparent);
+}
+
+/* Checkboxes */
+
+.claimability-form > label {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+
+  padding: 0.8rem 0;
+  cursor: pointer;
+}
+
+.claimability-form > label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-height: auto;
+  margin: 0;
+
+  accent-color: var(--brand);
+}
+
+/* Submit */
+
+.claimability-form > button {
+  grid-column: 1 / -1;
+
+  min-height: 48px;
+  margin-top: 0.5rem;
+  padding: 0.8rem 1.4rem;
+
+  border: none;
+  border-radius: 9px;
+
+  background: var(--brand);
+  color: #fff;
+
+  font: inherit;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    transform 0.15s ease;
+}
+
+.claimability-form > button:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.claimability-form > button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.claimability-form > button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------------- MESSAGES ---------------- */
+
+.claimability-error,
+.claimability-success {
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.25rem;
+
+  border-radius: 8px;
+  font-size: 0.92rem;
+}
+
+.claimability-error {
+  background: #fff1f1;
+  border: 1px solid #ffc9c9;
+  color: #a61b1b;
+}
+
+.claimability-success {
+  background: #effaf3;
+  border: 1px solid #b8e6c7;
+  color: #176b38;
+}
+
+/* ---------------- RESULT ---------------- */
+
+.claimability-result {
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 2rem;
+
+  background: var(--surface, #fff);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+}
+
+.claimability-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+
+  padding-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
+
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.result-label {
+  margin: 0 0 0.4rem;
+
+  color: var(--brand);
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.claimability-result-header h2 {
+  margin: 0 0 0.65rem;
+
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.7rem;
+  color: var(--ink);
+}
+
+.result-disclaimer {
+  max-width: 700px;
+  margin: 0;
+
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* Score */
+
+.score-box {
+  flex: 0 0 auto;
+
+  min-width: 155px;
+  padding: 1.15rem 1.3rem;
+
+  text-align: center;
+
+  background:
+    color-mix(in srgb, var(--brand) 8%, white);
+
+  border: 1px solid
+    color-mix(in srgb, var(--brand) 25%, transparent);
+
+  border-radius: 12px;
+}
+
+.score-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--brand);
+}
+
+.score-total {
+  margin-left: 2px;
+  color: var(--ink-soft);
+  font-size: 1rem;
+}
+
+.score-box strong {
+  display: block;
+  margin-top: 0.55rem;
+
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+/* ---------------- MANUAL REVIEW ---------------- */
+
+.manual-review-warning {
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.5rem;
+
+  background: #fff8e7;
+  border: 1px solid #ead59a;
+  border-radius: 10px;
+}
+
+.manual-review-warning strong {
+  color: #755600;
+}
+
+.manual-review-warning p {
+  margin: 0.35rem 0 0;
+  color: #66582e;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* ---------------- CHECK CARDS ---------------- */
+
+.claimability-checks {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(220px, 1fr));
+
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.claimability-check-card {
+  padding: 1.1rem;
+
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  border-radius: 10px;
+
+  background: var(--surface, #fff);
+}
+
+.claimability-check-card.passed {
+  border-left: 4px solid #2f855a;
+}
+
+.claimability-check-card.failed {
+  border-left: 4px solid #c53030;
+}
+
+.check-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+
+  margin-bottom: 0.55rem;
+}
+
+.check-title h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.check-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 25px;
+  height: 25px;
+
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.passed .check-icon {
+  background: #e8f7ee;
+  color: #237447;
+}
+
+.failed .check-icon {
+  background: #fdeaea;
+  color: #b52a2a;
+}
+
+.claimability-check-card > p {
+  margin: 0;
+
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* ---------------- FINANCIAL ---------------- */
+
+.financial-summary {
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+
+  background: var(--bg);
+  border-radius: 12px;
+}
+
+.financial-summary h3 {
+  margin: 0 0 1.2rem;
+  font-size: 1.1rem;
+}
+
+.financial-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(170px, 1fr));
+
+  gap: 1rem;
+}
+
+.financial-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  padding: 1rem;
+
+  background: var(--surface, #fff);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  border-radius: 9px;
+}
+
+.financial-grid span {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.financial-grid strong {
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+.financial-note {
+  margin: 1rem 0 0;
+
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+/* ---------------- REVIEW ---------------- */
+
+.review-section {
+  padding-top: 0.25rem;
+}
+
+.review-section > h3 {
+  margin: 0 0 1rem;
+
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.35rem;
+}
+
+.review-block {
+  padding: 1.1rem 1.2rem;
+  margin-bottom: 0.9rem;
+
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+.review-block h4 {
+  margin: 0 0 0.55rem;
+  font-size: 0.95rem;
+}
+
+.review-block p {
+  margin: 0;
+
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.review-block ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.review-block li {
+  margin-bottom: 0.45rem;
+
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+/* ---------------- RESPONSIVE ---------------- */
+
+@media (max-width: 800px) {
+  .claimability-page {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .claimability-form {
+    grid-template-columns: 1fr;
+    padding: 1.25rem;
+  }
+
+  .claimability-result {
+    padding: 1.25rem;
+  }
+
+  .claimability-result-header {
+    flex-direction: column;
+  }
+
+  .score-box {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+.claim-blockers {
+  margin: 1.25rem 0;
+  padding: 1rem 1.15rem;
+
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #dc2626;
+  border-radius: 10px;
+
+  color: #7f1d1d;
+}
+
+.claim-blockers strong {
+  display: block;
+  margin-bottom: 0.45rem;
+
+  color: #991b1b;
+  font-size: 1rem;
+}
+
+.claim-blockers p {
+  margin: 0 0 0.65rem;
+  line-height: 1.5;
+}
+
+.claim-blockers ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.claim-blockers li {
+  margin: 0.35rem 0;
+  line-height: 1.5;
+}
