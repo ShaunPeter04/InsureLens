@@ -53,6 +53,7 @@ router.get("/", auth, async (req, res) => {
         const userPolicies = await UserPolicy.find({
             user: req.user
         })
+            .select("-uploadedDocument.extractedText")
             .populate("policy")
             .sort({ createdAt: -1 });
 
