@@ -92,6 +92,31 @@ const claimCaseSchema = new mongoose.Schema(
             trim: true,
             default: ""
         },
+        nonPayableExpenses: {
+            type: [
+                {
+                    expenseName: {
+                        type: String,
+                        required: true,
+                        trim: true
+                    },
+
+                    amount: {
+                        type: Number,
+                        required: true,
+                        min: 0
+                    },
+
+                    reason: {
+                        type: String,
+                        trim: true,
+                        default: ""
+                    }
+                }
+            ],
+            default: []
+        },
+
 
         isPlannedHospitalization: {
             type: Boolean,

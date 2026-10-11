@@ -11,6 +11,7 @@ import PolicyDetails from './pages/PolicyDetails';
 import Recommendations from './pages/Recommendations';
 import MyPolicies from './pages/MyPolicies';
 import Claimability from './pages/Claimability';
+import RejectionAnalysis from './pages/RejectionAnalysis';
 
 
 
@@ -30,8 +31,8 @@ function App() {
       <Route path="/recommendations" element={<Recommendations/>} />
       <Route path='/my-policies' element={<MyPolicies/>}/>
       <Route path="/claimability" element={<Claimability />}/>
+      <Route path='/rejection-analysis' element={<RejectionAnalysis/>}/>
       </Route>
-
       <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
   )

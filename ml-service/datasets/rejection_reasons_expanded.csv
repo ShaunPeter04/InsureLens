@@ -1,0 +1,201 @@
+rejection_reason,category
+The claim could not be approved because the requested procedure is excluded from coverage.,Policy Exclusion
+The payable amount was reduced because non-payable expenses were excluded.,Financial Deduction
+The insurer rejected the claim because the treatment was classified as outpatient care.,Hospitalization
+The claim was partially settled because the insured must share part of the treatment cost.,Financial Deduction
+The rejection notice states that the treatment was classified as outpatient care.,Hospitalization
+The claim could not be approved because the treatment was classified as outpatient care.,Hospitalization
+The settlement request was denied because coverage waiting requirement remains applicable.,Waiting Period
+The insurer rejected the claim because mandatory waiting duration has not been satisfied.,Waiting Period
+The rejection letter states that the treatment is listed as an excluded service.,Policy Exclusion
+The rejection notice states that pre-existing disease disclosure requirements were not satisfied.,Pre-existing Disease
+The rejection notice states that the selected hospital room category was not eligible.,Room Rent or Sub-limit
+The claim could not be approved because the insurance policy had expired.,Policy Validity
+The insurer rejected the claim because proportionate deduction was applied due to room charges.,Room Rent or Sub-limit
+The insurer rejected the claim because required medical records are missing.,Documentation
+The claim was declined as the insurance contract had lapsed.,Policy Validity
+The settlement request was denied because the policy premium remained unpaid.,Policy Validity
+The claim could not be approved because a pre-existing medical condition was not disclosed.,Pre-existing Disease
+The claim was declined as room rent exceeded the permitted daily allowance.,Room Rent or Sub-limit
+The claim was declined as a pre-existing medical condition was not disclosed.,Pre-existing Disease
+The insurer rejected the claim because coverage waiting requirement remains applicable.,Waiting Period
+The claim was declined as the policy was not in force during hospitalization.,Policy Validity
+"According to the rejection letter, initial waiting period is incomplete.",Waiting Period
+The rejection notice states that the insured had an undeclared illness.,Pre-existing Disease
+The insurer rejected the claim because the selected hospital room category was not eligible.,Room Rent or Sub-limit
+The payable amount was reduced because the deductible amount reduced the settlement.,Financial Deduction
+The rejection notice states that the policy premium remained unpaid.,Policy Validity
+The claim could not be approved because the insured had an undeclared illness.,Pre-existing Disease
+The rejection notice states that hospital admission was not medically necessary.,Hospitalization
+The claim was declined as initial waiting period is incomplete.,Waiting Period
+The claim was partially settled because non-medical consumables were deducted.,Financial Deduction
+Medical records indicate that the insured had an undeclared illness.,Pre-existing Disease
+The claim could not be approved because the minimum hospitalization duration was not satisfied.,Hospitalization
+The settlement request was denied because mandatory waiting duration has not been satisfied.,Waiting Period
+Medical records indicate that the proposal form omitted previous medical history.,Pre-existing Disease
+The insurer rejected the claim because the insurance contract had lapsed.,Policy Validity
+The claim could not be approved because the treatment is listed as an excluded service.,Policy Exclusion
+The rejection letter states that the requested procedure is excluded from coverage.,Policy Exclusion
+The insurer applied deductions because a co-payment percentage was applied.,Financial Deduction
+The claim was declined as the insured had an undeclared illness.,Pre-existing Disease
+The claim could not be approved because the policy premium remained unpaid.,Policy Validity
+The claim could not be approved because coverage was inactive on the admission date.,Policy Validity
+The rejection letter states that the treatment falls under a policy exclusion.,Policy Exclusion
+The settlement request was denied because initial waiting period is incomplete.,Waiting Period
+The settlement request was reduced because the room accommodation exceeded the policy restriction.,Room Rent or Sub-limit
+The rejection notice states that the insurance policy had expired.,Policy Validity
+The insurer rejected the claim because the medical expense is not covered under the contract.,Policy Exclusion
+The insurer rejected the claim because room rent exceeded the permitted daily allowance.,Room Rent or Sub-limit
+The claim was declined as the treatment was classified as outpatient care.,Hospitalization
+The settlement was denied because the diagnosis falls outside the insured benefits.,Policy Exclusion
+The rejection notice states that the admission did not qualify for inpatient coverage.,Hospitalization
+The claim was declined as hospital admission was not medically necessary.,Hospitalization
+The settlement request was denied because the discharge summary was not submitted.,Documentation
+The insurer rejected the claim because the admission did not qualify for inpatient coverage.,Hospitalization
+The claim could not be fully approved because room rent exceeded the permitted daily allowance.,Room Rent or Sub-limit
+The rejection notice states that a prior diagnosis was not reported.,Pre-existing Disease
+The insurer rejected the claim because initial waiting period is incomplete.,Waiting Period
+The rejection notice states that coverage was inactive on the admission date.,Policy Validity
+The claim was partially settled because non-payable expenses were excluded.,Financial Deduction
+"According to the rejection letter, specific illness waiting period has not ended.",Waiting Period
+The claim was declined as the discharge summary was not submitted.,Documentation
+The insurer rejected the claim because the minimum hospitalization duration was not satisfied.,Hospitalization
+Medical records indicate that a prior diagnosis was not reported.,Pre-existing Disease
+The claim was declined as coverage was inactive on the admission date.,Policy Validity
+The insurer reduced the claim because the deductible amount reduced the settlement.,Financial Deduction
+The rejection notice states that room rent exceeded the permitted daily allowance.,Room Rent or Sub-limit
+The insurer rejected the claim because supporting hospital invoices were not provided.,Documentation
+The settlement request was denied because hospital admission was not medically necessary.,Hospitalization
+"According to the rejection letter, disease specific waiting restriction applies.",Waiting Period
+The settlement request was denied because disease specific waiting restriction applies.,Waiting Period
+The insurer reduced the claim because non-payable expenses were excluded.,Financial Deduction
+The claim could not be fully approved because the selected hospital room category was not eligible.,Room Rent or Sub-limit
+The insurer reduced the claim because non-medical consumables were deducted.,Financial Deduction
+The claim could not be approved because the treatment falls under a policy exclusion.,Policy Exclusion
+The claim was declined as additional diagnostic reports are required.,Documentation
+The settlement request was denied because the insurance policy had expired.,Policy Validity
+The claim could not be approved because the proposal form omitted previous medical history.,Pre-existing Disease
+The insurer rejected the claim because the procedure did not meet day care eligibility requirements.,Hospitalization
+The insurer rejected the claim because additional diagnostic reports are required.,Documentation
+The insurer rejected the claim because the treatment is listed as an excluded service.,Policy Exclusion
+The insurer applied deductions because the deductible amount reduced the settlement.,Financial Deduction
+The claim could not be processed because the discharge summary was not submitted.,Documentation
+The settlement request was denied because the admission did not qualify for inpatient coverage.,Hospitalization
+The claim was declined as the procedure did not meet day care eligibility requirements.,Hospitalization
+The claim was declined as proportionate deduction was applied due to room charges.,Room Rent or Sub-limit
+The settlement request was reduced because the treatment exceeded the applicable sublimit.,Room Rent or Sub-limit
+The claim was declined as a prior diagnosis was not reported.,Pre-existing Disease
+"According to the rejection letter, coverage waiting requirement remains applicable.",Waiting Period
+The settlement request was reduced because room rent exceeded the permitted daily allowance.,Room Rent or Sub-limit
+The claim could not be approved because the admission did not qualify for inpatient coverage.,Hospitalization
+The insurer reduced the claim because a co-payment percentage was applied.,Financial Deduction
+The rejection letter states that the diagnosis falls outside the insured benefits.,Policy Exclusion
+The claim was declined as supporting hospital invoices were not provided.,Documentation
+The claim could not be fully approved because proportionate deduction was applied due to room charges.,Room Rent or Sub-limit
+The insurer rejected the claim because hospital admission was not medically necessary.,Hospitalization
+The claim was declined as the insurance policy had expired.,Policy Validity
+The settlement was denied because the medical expense is not covered under the contract.,Policy Exclusion
+The insurer rejected the claim because the insured had an undeclared illness.,Pre-existing Disease
+The settlement amount was adjusted because non-medical consumables were deducted.,Financial Deduction
+The rejection notice states that the minimum hospitalization duration was not satisfied.,Hospitalization
+The insurer rejected the claim because the requested procedure is excluded from coverage.,Policy Exclusion
+The claim could not be approved because the policy was not in force during hospitalization.,Policy Validity
+The insurer rejected the claim because disease specific waiting restriction applies.,Waiting Period
+The insurer rejected the claim because pre-existing disease disclosure requirements were not satisfied.,Pre-existing Disease
+The settlement amount was adjusted because the insured must share part of the treatment cost.,Financial Deduction
+The settlement request was denied because additional diagnostic reports are required.,Documentation
+The settlement request was denied because supporting hospital invoices were not provided.,Documentation
+The claim was declined as the selected hospital room category was not eligible.,Room Rent or Sub-limit
+The claim could not be approved because the procedure did not meet day care eligibility requirements.,Hospitalization
+The insurer applied deductions because the insured must share part of the treatment cost.,Financial Deduction
+The claim was declined as the room accommodation exceeded the policy restriction.,Room Rent or Sub-limit
+The insurer reduced the claim because the insured must share part of the treatment cost.,Financial Deduction
+The claim could not be approved because hospital admission was not medically necessary.,Hospitalization
+The claim was declined as pre-existing disease disclosure requirements were not satisfied.,Pre-existing Disease
+The claim could not be approved because a prior diagnosis was not reported.,Pre-existing Disease
+The settlement request was denied because the policy was not in force during hospitalization.,Policy Validity
+The rejection notice states that proportionate deduction was applied due to room charges.,Room Rent or Sub-limit
+The claim could not be fully approved because the room accommodation exceeded the policy restriction.,Room Rent or Sub-limit
+The claim was declined as the treatment exceeded the applicable sublimit.,Room Rent or Sub-limit
+The insurer rejected the claim because the treatment exceeded the applicable sublimit.,Room Rent or Sub-limit
+The claim could not be approved because specific illness waiting period has not ended.,Waiting Period
+The claim was declined as required medical records are missing.,Documentation
+The insurer rejected the claim because the claim form is incomplete.,Documentation
+The claim was declined as disease specific waiting restriction applies.,Waiting Period
+The claim was declined as the claim form is incomplete.,Documentation
+The rejection notice states that the policy was not in force during hospitalization.,Policy Validity
+The settlement request was denied because the procedure did not meet day care eligibility requirements.,Hospitalization
+The claim could not be processed because additional diagnostic reports are required.,Documentation
+The claim could not be approved because the diagnosis falls outside the insured benefits.,Policy Exclusion
+The insurer rejected the claim because the diagnosis falls outside the insured benefits.,Policy Exclusion
+The rejection notice states that the discharge summary was not submitted.,Documentation
+The rejection notice states that additional diagnostic reports are required.,Documentation
+The rejection notice states that the proposal form omitted previous medical history.,Pre-existing Disease
+The rejection notice states that supporting hospital invoices were not provided.,Documentation
+The settlement request was denied because the treatment was classified as outpatient care.,Hospitalization
+The insurer applied deductions because non-medical consumables were deducted.,Financial Deduction
+The claim was declined as the policy premium remained unpaid.,Policy Validity
+The insurer rejected the claim because a pre-existing medical condition was not disclosed.,Pre-existing Disease
+The settlement amount was adjusted because a co-payment percentage was applied.,Financial Deduction
+The claim could not be fully approved because the treatment exceeded the applicable sublimit.,Room Rent or Sub-limit
+The settlement was denied because the treatment is listed as an excluded service.,Policy Exclusion
+The claim was declined as the diagnosis falls outside the insured benefits.,Policy Exclusion
+The insurer rejected the claim because the policy premium remained unpaid.,Policy Validity
+"According to the rejection letter, mandatory waiting duration has not been satisfied.",Waiting Period
+The claim could not be approved because pre-existing disease disclosure requirements were not satisfied.,Pre-existing Disease
+The rejection notice states that the claim form is incomplete.,Documentation
+The insurer rejected the claim because the discharge summary was not submitted.,Documentation
+The settlement request was reduced because the selected hospital room category was not eligible.,Room Rent or Sub-limit
+The claim could not be approved because initial waiting period is incomplete.,Waiting Period
+The settlement request was denied because required medical records are missing.,Documentation
+The claim was declined as the proposal form omitted previous medical history.,Pre-existing Disease
+The rejection notice states that the treatment exceeded the applicable sublimit.,Room Rent or Sub-limit
+The settlement request was denied because the minimum hospitalization duration was not satisfied.,Hospitalization
+The settlement request was denied because specific illness waiting period has not ended.,Waiting Period
+The claim could not be approved because the medical expense is not covered under the contract.,Policy Exclusion
+The claim could not be processed because supporting hospital invoices were not provided.,Documentation
+The rejection notice states that required medical records are missing.,Documentation
+The claim could not be approved because disease specific waiting restriction applies.,Waiting Period
+The settlement request was denied because the claim form is incomplete.,Documentation
+The settlement amount was adjusted because non-payable expenses were excluded.,Financial Deduction
+The claim was partially settled because a co-payment percentage was applied.,Financial Deduction
+The claim could not be processed because required medical records are missing.,Documentation
+The settlement amount was adjusted because the deductible amount reduced the settlement.,Financial Deduction
+Medical records indicate that pre-existing disease disclosure requirements were not satisfied.,Pre-existing Disease
+The settlement request was denied because the insurance contract had lapsed.,Policy Validity
+The claim could not be processed because the claim form is incomplete.,Documentation
+The payable amount was reduced because a co-payment percentage was applied.,Financial Deduction
+The rejection notice states that a pre-existing medical condition was not disclosed.,Pre-existing Disease
+The insurer rejected the claim because specific illness waiting period has not ended.,Waiting Period
+The settlement was denied because the requested procedure is excluded from coverage.,Policy Exclusion
+The insurer rejected the claim because the insurance policy had expired.,Policy Validity
+The rejection notice states that the procedure did not meet day care eligibility requirements.,Hospitalization
+The claim was declined as the requested procedure is excluded from coverage.,Policy Exclusion
+The claim was declined as the minimum hospitalization duration was not satisfied.,Hospitalization
+The claim was partially settled because the deductible amount reduced the settlement.,Financial Deduction
+The settlement request was denied because coverage was inactive on the admission date.,Policy Validity
+The insurer rejected the claim because the treatment falls under a policy exclusion.,Policy Exclusion
+The settlement request was reduced because proportionate deduction was applied due to room charges.,Room Rent or Sub-limit
+The insurer applied deductions because non-payable expenses were excluded.,Financial Deduction
+The insurer rejected the claim because the policy was not in force during hospitalization.,Policy Validity
+The insurer rejected the claim because the room accommodation exceeded the policy restriction.,Room Rent or Sub-limit
+The claim was declined as the treatment is listed as an excluded service.,Policy Exclusion
+The claim was declined as the treatment falls under a policy exclusion.,Policy Exclusion
+The claim could not be approved because coverage waiting requirement remains applicable.,Waiting Period
+The claim was declined as mandatory waiting duration has not been satisfied.,Waiting Period
+The claim was declined as coverage waiting requirement remains applicable.,Waiting Period
+The claim was declined as the admission did not qualify for inpatient coverage.,Hospitalization
+The insurer rejected the claim because coverage was inactive on the admission date.,Policy Validity
+The claim could not be approved because mandatory waiting duration has not been satisfied.,Waiting Period
+The rejection notice states that the room accommodation exceeded the policy restriction.,Room Rent or Sub-limit
+The claim could not be approved because the insurance contract had lapsed.,Policy Validity
+The insurer rejected the claim because the proposal form omitted previous medical history.,Pre-existing Disease
+The payable amount was reduced because the insured must share part of the treatment cost.,Financial Deduction
+Medical records indicate that a pre-existing medical condition was not disclosed.,Pre-existing Disease
+The claim was declined as the medical expense is not covered under the contract.,Policy Exclusion
+The rejection letter states that the medical expense is not covered under the contract.,Policy Exclusion
+The settlement was denied because the treatment falls under a policy exclusion.,Policy Exclusion
+The payable amount was reduced because non-medical consumables were deducted.,Financial Deduction
+The claim was declined as specific illness waiting period has not ended.,Waiting Period
+The insurer rejected the claim because a prior diagnosis was not reported.,Pre-existing Disease
+The rejection notice states that the insurance contract had lapsed.,Policy Validity

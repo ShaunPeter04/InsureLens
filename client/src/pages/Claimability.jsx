@@ -31,6 +31,7 @@ function Claimability() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [nonPayableExpenses, setNonPayableExpenses] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,6 +88,33 @@ function Claimability() {
     }));
   };
 
+  const addNonPayableExpense = () => {
+  setNonPayableExpenses((prev) => [
+    ...prev,
+    {
+      expenseName: "",
+      amount: "",
+      reason: "",
+    },
+  ]);
+};
+
+const updateNonPayableExpense = (index, field, value) => {
+  setNonPayableExpenses((prev) =>
+    prev.map((expense, i) =>
+      i === index
+        ? { ...expense, [field]: value }
+        : expense
+    )
+  );
+};
+
+const removeNonPayableExpense = (index) => {
+  setNonPayableExpenses((prev) =>
+    prev.filter((_, i) => i !== index)
+  );
+};
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -105,6 +133,14 @@ function Claimability() {
 
         roomRentPerDay: Number(
           formData.roomRentPerDay || 0
+        ),
+
+        nonPayableExpenses: nonPayableExpenses.map(
+          (expense) => ({
+            expenseName: expense.expenseName.trim(),
+            amount: Number(expense.amount),
+            reason: expense.reason.trim(),
+          })
         ),
       };
 
@@ -458,6 +494,102 @@ function Claimability() {
           />
         </div>
 
+        {/* Manual Non-Payable Expenses */}
+        <div className="non-payable-section">
+          <h3>Manual Non-Payable Expenses</h3>
+
+          <p>
+            Enter expenses reported as non-payable, such as
+            masks, cotton, or gloves. These amounts must
+            already be included in the total hospital bill.
+          </p>
+
+          {nonPayableExpenses.map((expense, index) => (
+            <div className="non-payable-item" key={index}>
+              <div>
+                <label>Expense Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Masks"
+                  value={expense.expenseName}
+                  onChange={(e) =>
+                    updateNonPayableExpense(
+                      index,
+                      "expenseName",
+                      e.target.value
+                    )
+                  }
+                  required
+                />
+              </div>
+
+              <div>
+                <label>Amount (₹)</label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  placeholder="e.g. 250"
+                  value={expense.amount}
+                  onChange={(e) =>
+                    updateNonPayableExpense(
+                      index,
+                      "amount",
+                      e.target.value
+                    )
+                  }
+                  required
+                />
+              </div>
+
+              <div>
+                <label>Reason (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Reported as non-payable"
+                  value={expense.reason}
+                  onChange={(e) =>
+                    updateNonPayableExpense(
+                      index,
+                      "reason",
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+
+              <button
+                type="button"
+                className="remove-expense-btn"
+                onClick={() => removeNonPayableExpense(index)}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            className="add-expense-btn"
+            onClick={addNonPayableExpense}
+          >
+            + Add Expense
+          </button>
+
+          <div className="non-payable-total">
+            <strong>
+              Total Reported Non-Payable Expenses: ₹
+              {nonPayableExpenses
+                .reduce(
+                  (sum, expense) =>
+                    sum + (Number(expense.amount) || 0),
+                  0
+                )
+                .toLocaleString("en-IN")}
+            </strong>
+          </div>
+        </div>
+
         <label>
           <input
             name="isPlannedHospitalization"
@@ -577,16 +709,27 @@ function Claimability() {
           ].map(([title, check]) => (
             <div
               className={`claimability-check-card ${
-                check.passed ? "passed" : "failed"
+                check.passed === null
+                  ? "not-verified"
+                  : check.passed
+                    ? "passed"
+                    : "failed"
               }`}
               key={title}
             >
               <div className="check-title">
                 <span className="check-icon">
-                  {check.passed ? "✓" : "✕"}
+                  {check.passed === null
+                    ? "?"
+                    : check.passed
+                      ? "✓"
+                      : "✕"}
                 </span>
 
-                <h3>{title}</h3>
+                <h3>
+                  {title}
+                  {check.passed === null && " (Not Verified)"}
+                </h3>
               </div>
 
               <p>{check.message}</p>
@@ -607,7 +750,15 @@ function Claimability() {
                 )}
               </strong>
             </div>
-
+            <div>
+            <span>Reported Non-Payable Expenses</span>
+            <strong>
+              ₹{(
+                analysisResult.analysis.financialImpact
+                  .totalNonPayableExpenses ?? 0
+              ).toLocaleString("en-IN")}
+            </strong>
+          </div>
             <div>
               <span>Co-payment</span>
               <strong>
@@ -629,10 +780,7 @@ function Claimability() {
             </div>
 
             <div>
-              <span>
-                Amount After Basic Deductions
-              </span>
-
+              <span>Preliminary Amount After Reported Deductions</span>
               <strong>
                 ₹
                 {analysisResult.analysis.financialImpact.estimatedAmountAfterBasicDeductions.toLocaleString(
@@ -642,6 +790,58 @@ function Claimability() {
             </div>
           </div>
 
+          {(analysisResult.analysis.financialImpact.nonPayableExpenses ?? [])
+            .length > 0 && (
+            <div className="expense-breakdown">
+              <h4>Itemized Reported Non-Payable Expenses</h4>
+
+              <div className="expense-breakdown-list">
+                {analysisResult.analysis.financialImpact.nonPayableExpenses.map(
+                  (expense, index) => (
+                    <div className="expense-breakdown-row" key={expense._id || index}>
+                      <div>
+                        <strong>{expense.expenseName}</strong>
+
+                        {expense.reason && (
+                          <p>{expense.reason}</p>
+                        )}
+                      </div>
+
+                      <span>
+                        ₹{Number(expense.amount).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
+
+              <div className="expense-breakdown-total">
+                <strong>Total Reported Non-Payable</strong>
+                <strong>
+                  ₹{analysisResult.analysis.financialImpact.totalNonPayableExpenses.toLocaleString(
+                    "en-IN"
+                  )}
+                </strong>
+              </div>
+            </div>
+          )}  
+          
+          {analysisResult.analysis.roomRent?.requiresManualReview && (
+            <div className="room-rent-financial-warning">
+              <strong>Room-Rent Financial Review Required</strong>
+
+              <p>
+                {analysisResult.analysis.roomRent.message}
+              </p>
+
+              <p>
+                The preliminary financial estimate does not
+                include any additional room-rent-related
+                deductions. The final amount may differ.
+              </p>
+            </div>
+          )}
+    
           <p className="financial-note">
             {
               analysisResult.analysis.financialImpact

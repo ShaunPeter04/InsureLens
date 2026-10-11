@@ -62,6 +62,7 @@ router.post("/", auth, async (req, res) => {
             totalBillAmount,
             roomRentPerDay,
             roomType,
+            nonPayableExpenses = [],
             isPlannedHospitalization,
             isEmergency
         } = req.body;
@@ -214,6 +215,63 @@ router.post("/", auth, async (req, res) => {
         }
 
         // ------------------------------------------
+        // VALIDATE NON-PAYABLE EXPENSES
+        // ------------------------------------------
+
+        if (!Array.isArray(nonPayableExpenses)) {
+            return res.status(400).json({
+                message: "Non-payable expenses must be an array"
+            });
+        }
+
+        const validatedNonPayableExpenses = [];
+        let totalNonPayableExpenses = 0;
+
+        for (const expense of nonPayableExpenses) {
+            const expenseName =
+                typeof expense?.expenseName === "string"
+                    ? expense.expenseName.trim()
+                    : "";
+
+            const reason =
+                typeof expense?.reason === "string"
+                    ? expense.reason.trim()
+                    : "";
+
+            const amount = expense?.amount;
+
+            if (
+                !expenseName ||
+                typeof amount !== "number" ||
+                !Number.isFinite(amount) ||
+                amount <= 0
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Each non-payable expense must have a name and a valid positive amount"
+                });
+            }
+
+            totalNonPayableExpenses += amount;
+
+            validatedNonPayableExpenses.push({
+                expenseName,
+                amount,
+                reason
+            });
+        }
+
+        if (
+            Math.round(totalNonPayableExpenses * 100) >
+            Math.round(billAmount * 100)
+        ) {
+            return res.status(400).json({
+                message:
+                    "Total non-payable expenses cannot exceed the hospital bill"
+            });
+        }
+
+        // ------------------------------------------
         // CREATE CASE
         // ------------------------------------------
 
@@ -254,7 +312,7 @@ router.post("/", auth, async (req, res) => {
                 typeof roomType === "string"
                     ? roomType.trim()
                     : "",
-
+            nonPayableExpenses: validatedNonPayableExpenses,
             isPlannedHospitalization:
                 Boolean(isPlannedHospitalization),
 
@@ -481,7 +539,10 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
             Number(userPolicy.selectedCoverage);
 
         const actualRoomRent =
-            Number(claimCase.roomRentPerDay || 0);
+            claimCase.roomRentPerDay == null ||
+            Number(claimCase.roomRentPerDay) <= 0
+                ? null
+                : Number(claimCase.roomRentPerDay);
 
         let allowedRoomRent = null;
         let roomRentPassed = true;
@@ -518,22 +579,21 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
                 allowedRoomRent = Math.min(...limits);
 
                 roomRentPassed =
-                    actualRoomRent <= allowedRoomRent;
-
-                roomRentReason = roomRentPassed
-                    ? `Room rent of ₹${actualRoomRent.toLocaleString(
-                        "en-IN"
-                    )} per day is within the allowed limit of ₹${allowedRoomRent.toLocaleString(
-                        "en-IN"
-                    )} per day.`
-                    : `Room rent of ₹${actualRoomRent.toLocaleString(
-                        "en-IN"
-                    )} per day exceeds the allowed limit of ₹${allowedRoomRent.toLocaleString(
-                        "en-IN"
-                    )} per day.`;
+                    actualRoomRent === null
+                        ? null
+                        : actualRoomRent <= allowedRoomRent;
+                if (actualRoomRent === null) {
+                    roomRentReason =
+                        `Room rent was not provided. The policy allows up to ₹${allowedRoomRent.toLocaleString("en-IN")} per day, but eligibility cannot be verified.`;
+                } else {
+                    roomRentReason = roomRentPassed
+                        ? `Room rent of ₹${actualRoomRent.toLocaleString("en-IN")} per day is within the allowed limit of ₹${allowedRoomRent.toLocaleString("en-IN")} per day.`
+                        : `Room rent of ₹${actualRoomRent.toLocaleString("en-IN")} per day exceeds the allowed limit of ₹${allowedRoomRent.toLocaleString("en-IN")} per day.`;
+                }
             } else {
+                roomRentPassed = null;
                 roomRentReason =
-                    "A room-rent restriction is recorded, but no numeric room-rent limit is available.";
+                    "A room-rent restriction is recorded, but no numeric room-rent limit is available. Room-rent eligibility cannot be verified and requires manual review.";
             }
         }
 
@@ -576,32 +636,77 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
             totalBillAmount - sumInsured
         );
 
-        const coPaymentPercentage =
-            Number(
-                policyData.coPaymentPercentage || 0
+        // ------------------------------------------
+        // MANUAL NON-PAYABLE EXPENSES
+        // ------------------------------------------
+
+        const nonPayableExpenses =
+            claimCase.nonPayableExpenses || [];
+
+        const totalNonPayableExpenses =
+            nonPayableExpenses.reduce(
+                (total, expense) =>
+                    total + Number(expense.amount || 0),
+                0
             );
 
-        const estimatedCoPayment =
-            amountWithinCoverage *
-            (coPaymentPercentage / 100);
+        // Calculate the potentially eligible amount first.
+        // Non-payable expenses are assumed to be included
+        // in the total hospital bill.
+
+        const amountAfterNonPayableExpenses =
+            Math.max(
+                0,
+                totalBillAmount - totalNonPayableExpenses
+            );
+
+        const amountWithinCoverageAfterExpenses =
+            Math.min(
+                amountAfterNonPayableExpenses,
+                sumInsured
+            );
+
+
+        // ------------------------------------------
+        // CO-PAYMENT AND DEDUCTIBLE
+        // ------------------------------------------
+
+        const coPaymentPercentage =
+            Number(policyData.coPaymentPercentage || 0);
 
         const deductibleAmount =
-            Number(
-                policyData.deductibleAmount || 0
-            );
+            Number(policyData.deductibleAmount || 0);
+
+        const eligibleAmount = Math.max(
+            0,
+            amountWithinCoverageAfterExpenses
+        );
 
         const estimatedDeductible = Math.min(
-            deductibleAmount,
-            amountWithinCoverage
+            Math.max(0, deductibleAmount),
+            eligibleAmount
         );
+
+        const amountAfterDeductible = Math.max(
+            0,
+            eligibleAmount - estimatedDeductible
+        );
+
+        const safeCoPaymentPercentage = Math.min(
+            100,
+            Math.max(0, coPaymentPercentage)
+        );
+
+        const estimatedCoPayment =
+            amountAfterDeductible *
+            (safeCoPaymentPercentage / 100);
 
         const estimatedAmountAfterBasicDeductions =
             Math.max(
                 0,
-                amountWithinCoverage -
-                    estimatedCoPayment -
-                    estimatedDeductible
-        );
+                amountAfterDeductible -
+                    estimatedCoPayment
+            );
 
         const pedWaitingMonths =
             Number(
@@ -893,13 +998,14 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
                                 ? "Day-care treatment is covered under this policy."
                                 : `Hospitalization duration was ${hospitalizationHours?.toFixed(1)} hours and satisfies the ${requiredHospitalizationHours}-hour requirement.`
             },
+            
             roomRent: {
                 passed:
-                    roomRentPassed &&
-                    roomTypePassed,
+                    roomRentPassed === null
+                        ? null
+                        : roomRentPassed && roomTypePassed,
 
                 actualPerDay: actualRoomRent,
-
                 allowedPerDay: allowedRoomRent,
 
                 actualRoomType:
@@ -907,13 +1013,31 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
 
                 allowedRoomType,
 
+                exceedsLimit:
+                    roomRentPassed === false,
+
+                potentialProportionateDeduction:
+                    roomRentPassed === false ||
+                    roomTypePassed === false,
+
+                deductionAmount: null,
+
+                requiresManualReview:
+                    roomRentPassed !== true ||
+                    roomTypePassed === false ||
+                    (
+                        roomRentRule.hasCap &&
+                        allowedRoomRent === null
+                    ),
+
                 message:
-                    !roomRentPassed
-                        ? roomRentReason
+                    roomRentPassed === false
+                        ? `${roomRentReason} Additional room-rent-related deductions may apply depending on the policy wording. The deduction amount cannot be determined from the available information.`
                         : !roomTypePassed
-                            ? `Selected room type "${claimCase.roomType}" does not match the policy room eligibility "${allowedRoomType}".`
+                            ? `Selected room type "${claimCase.roomType}" does not match the policy room eligibility "${allowedRoomType}". Additional deductions may apply, subject to policy wording.`
                             : roomRentReason
             },
+
             coverage: {
                 passed: coveragePassed,
 
@@ -932,6 +1056,9 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
                     )}.`
             },
             financialImpact: {
+                nonPayableExpenses,
+                totalNonPayableExpenses,
+                amountAfterNonPayableExpenses,
                 coPaymentPercentage,
                 estimatedCoPayment,
 
@@ -941,10 +1068,7 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
                 estimatedAmountAfterBasicDeductions,
 
                 message:
-                    coPaymentPercentage > 0 ||
-                    deductibleAmount > 0
-                        ? "Co-payment and/or deductible may reduce the payable amount."
-                        : "No structured co-payment or deductible applies under the stored policy rules."
+                    "This is a preliminary estimate after deducting user-reported non-payable expenses and applying the stored sum-insured limit, co-payment, and deductible. Reported expenses have not been independently verified against the insurer's policy. Additional deductions may apply for other non-payable items, room-rent restrictions, treatment sub-limits, policy exclusions, and other applicable conditions. The final payable amount must be verified against the insurer's claim settlement statement.",
             },
             requiresReview: {
                 specificIllnessWaitingPeriod: {
@@ -1033,12 +1157,16 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
         }
 
         // 4. Room-rent compliance — 15 points
-        maximumScore += 15;
+        if (roomRentPassed === null) {
+            // Room rent is unknown.
+            // Exclude this check from the score.
+        } else {
+            maximumScore += 15;
 
-        if (roomRentPassed && roomTypePassed) {
-            claimabilityScore += 15;
+            if (roomRentPassed && roomTypePassed) {
+                claimabilityScore += 15;
+            }
         }
-
         // 5. Sum-insured availability — 20 points
         maximumScore += 20;
 
@@ -1076,8 +1204,15 @@ const requiresManualReview =
     hasMatchedExclusion ||
     matchedSubLimits.length > 0 ||
     preExistingConditionsRules.length > 0 ||
-    importantConditions.length > 0;
+    importantConditions.length > 0 ||
+    roomRentPassed === null;
 
+if (
+    requiresManualReview &&
+    !hasBlockingIssues
+) {
+    assessment += " — Review Required";
+}
         return res.json({
             claimCaseId: claimCase._id,
             policyName:

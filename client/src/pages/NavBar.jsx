@@ -30,7 +30,9 @@ function NavBar() {
                   My Policies
                 </NavLink>
                 <NavLink to="/claimability" className={linkClass}>Claimability</NavLink>
-            
+                <NavLink to="/rejection-analysis" className={linkClass}>
+                    Rejection Analysis
+                </NavLink>
             </div>
             <div className="navbar-user">
                 <span className="navbar-greeting">Hi, {firstName}</span>

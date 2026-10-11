@@ -3,6 +3,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from typing import Optional
 from pypdf import PdfReader
 from io import BytesIO
+from rejection_predictor import predict_rejection
 from pdf2image import convert_from_bytes
 import pytesseract
 
@@ -43,6 +44,10 @@ class UserRequirements(BaseModel):
 class RecommendationRequest(BaseModel):
     userRequirements: UserRequirements
     policies: list[dict]
+
+class RejectionPredictionRequest(BaseModel):
+    rejectionReason: str
+    insurerRemarks: str = ""
 
 def get_matched_coverage(coverage_amounts, required_coverage):
     eligible_coverages = [
@@ -758,4 +763,24 @@ async def extract_policy_text(
             detail=(
                 f"Failed to extract PDF text: {str(error)}"
             )
+        )
+
+@app.post("/predict-rejection")
+def predict_rejection_endpoint(
+    request: RejectionPredictionRequest
+):
+    try:
+        return predict_rejection(
+            request.rejectionReason,
+            request.insurerRemarks
+        )
+    except ValueError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error)
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=503,
+            detail="Rejection prediction service unavailable"
         )
