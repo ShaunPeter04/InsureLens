@@ -1,0 +1,417 @@
+{
+  "run": "integration-1791781868856-b274008279",
+  "startedAt": "2026-10-12T05:11:08.857Z",
+  "services": [
+    {
+      "name": "MongoDB connection and ping",
+      "status": "PASSED",
+      "detail": "Connected; read-only ping succeeded; automatic index creation disabled"
+    },
+    {
+      "name": "Required configuration present",
+      "status": "PASSED",
+      "detail": "Required values present; secrets not recorded; configured ports match the existing Vite proxy"
+    },
+    {
+      "name": "Frontend-to-backend CORS preflight",
+      "status": "PASSED"
+    },
+    {
+      "name": "Express availability",
+      "status": "PASSED"
+    },
+    {
+      "name": "Vite frontend and API proxy",
+      "status": "PASSED"
+    },
+    {
+      "name": "FastAPI health",
+      "status": "PASSED"
+    }
+  ],
+  "api": [
+    {
+      "name": "Registration synthetic account 1",
+      "status": "PASSED"
+    },
+    {
+      "name": "Registration synthetic account 2",
+      "status": "PASSED"
+    },
+    {
+      "name": "Duplicate normalized email rejected",
+      "status": "PASSED"
+    },
+    {
+      "name": "Invalid registration body rejected",
+      "status": "PASSED"
+    },
+    {
+      "name": "Login valid credentials",
+      "status": "PASSED"
+    },
+    {
+      "name": "Login wrong password rejected",
+      "status": "PASSED"
+    },
+    {
+      "name": "Login malformed fields rejected",
+      "status": "PASSED"
+    },
+    {
+      "name": "Protected route without token denied",
+      "status": "PASSED"
+    },
+    {
+      "name": "Protected route invalid token denied",
+      "status": "PASSED"
+    },
+    {
+      "name": "Protected route valid token",
+      "status": "PASSED"
+    },
+    {
+      "name": "Profile retrieval excludes credentials",
+      "status": "PASSED"
+    },
+    {
+      "name": "Profile valid update preserves zero income",
+      "status": "PASSED"
+    },
+    {
+      "name": "Profile invalid update: Whitespace",
+      "status": "PASSED"
+    },
+    {
+      "name": "Profile invalid update: Impossible date",
+      "status": "PASSED"
+    },
+    {
+      "name": "Profile invalid update: Negative amount",
+      "status": "PASSED"
+    },
+    {
+      "name": "Profile invalid update: Invalid amount type",
+      "status": "PASSED"
+    },
+    {
+      "name": "Profile invalid update: Invalid gender",
+      "status": "PASSED"
+    },
+    {
+      "name": "Profile invalid update: Duplicate mobile",
+      "status": "PASSED"
+    },
+    {
+      "name": "Profile ignores credential and owner changes",
+      "status": "PASSED"
+    },
+    {
+      "name": "Catalog policy details",
+      "status": "PASSED"
+    },
+    {
+      "name": "Catalog invalid ObjectId rejected",
+      "status": "PASSED"
+    },
+    {
+      "name": "Save valid catalog policy",
+      "status": "PASSED"
+    },
+    {
+      "name": "Duplicate saved policy rejected",
+      "status": "PASSED"
+    },
+    {
+      "name": "Save invalid policy: Invalid ID",
+      "status": "PASSED"
+    },
+    {
+      "name": "Save invalid policy: Invalid coverage type",
+      "status": "PASSED"
+    },
+    {
+      "name": "Save invalid policy: Negative coverage",
+      "status": "PASSED"
+    },
+    {
+      "name": "Save invalid policy: Impossible date",
+      "status": "PASSED"
+    },
+    {
+      "name": "Save invalid policy: Reversed dates",
+      "status": "PASSED"
+    },
+    {
+      "name": "Saved policies owned listing",
+      "status": "PASSED"
+    },
+    {
+      "name": "Other account cannot list first user policies",
+      "status": "PASSED"
+    },
+    {
+      "name": "Recommendations through Express to actual FastAPI",
+      "status": "PASSED",
+      "detail": "Received 5 ranked recommendations"
+    },
+    {
+      "name": "Recommendations invalid input: Negative coverage",
+      "status": "PASSED"
+    },
+    {
+      "name": "Recommendations invalid input: NaN text",
+      "status": "PASSED"
+    },
+    {
+      "name": "Recommendations invalid input: Invalid budget",
+      "status": "PASSED"
+    },
+    {
+      "name": "Recommendations invalid input: Invalid percentage",
+      "status": "PASSED"
+    },
+    {
+      "name": "Recommendations invalid input: Malformed diseases",
+      "status": "PASSED"
+    },
+    {
+      "name": "Recommendations invalid input: Invalid lifestyle type",
+      "status": "PASSED"
+    },
+    {
+      "name": "Recommendations empty results handled",
+      "status": "PASSED"
+    },
+    {
+      "name": "FastAPI malformed direct request rejected",
+      "status": "PASSED"
+    },
+    {
+      "name": "Create valid hospitalization case",
+      "status": "PASSED"
+    },
+    {
+      "name": "Hospitalization invalid input: Impossible date",
+      "status": "PASSED"
+    },
+    {
+      "name": "Hospitalization invalid input: Future date",
+      "status": "PASSED"
+    },
+    {
+      "name": "Hospitalization invalid input: Negative bill",
+      "status": "PASSED"
+    },
+    {
+      "name": "Hospitalization invalid input: Missing bill",
+      "status": "PASSED"
+    },
+    {
+      "name": "Hospitalization invalid input: Invalid room amount",
+      "status": "PASSED"
+    },
+    {
+      "name": "Hospitalization invalid input: Invalid diagnosis",
+      "status": "PASSED"
+    },
+    {
+      "name": "Hospitalization invalid input: Expenses exceed bill",
+      "status": "PASSED"
+    },
+    {
+      "name": "Hospitalization invalid input: Invalid policy ID",
+      "status": "PASSED"
+    },
+    {
+      "name": "Other account cannot use foreign saved policy",
+      "status": "PASSED"
+    },
+    {
+      "name": "Claimability valid stored analysis",
+      "status": "PASSED"
+    },
+    {
+      "name": "Repeated analysis does not duplicate hospitalization",
+      "status": "PASSED"
+    },
+    {
+      "name": "Other account cannot analyze foreign hospitalization",
+      "status": "PASSED"
+    },
+    {
+      "name": "Claimability invalid ObjectId rejected",
+      "status": "PASSED"
+    },
+    {
+      "name": "Create linked rejection case",
+      "status": "PASSED"
+    },
+    {
+      "name": "Rejection requires linked waiting-period hospitalization",
+      "status": "PASSED"
+    },
+    {
+      "name": "Rejection rejects negative amount",
+      "status": "PASSED"
+    },
+    {
+      "name": "Rejection rejects impossible date",
+      "status": "PASSED"
+    },
+    {
+      "name": "Other account cannot create foreign linked rejection",
+      "status": "PASSED"
+    },
+    {
+      "name": "Rejection analysis through actual ML models",
+      "status": "PASSED",
+      "detail": "Rule analysis and loaded ML model prediction returned"
+    },
+    {
+      "name": "Other account cannot retrieve foreign rejection",
+      "status": "PASSED"
+    },
+    {
+      "name": "Other account cannot analyze foreign rejection",
+      "status": "PASSED"
+    },
+    {
+      "name": "Rejection invalid ObjectId rejected",
+      "status": "PASSED"
+    },
+    {
+      "name": "Policy catalog unchanged after audit",
+      "status": "PASSED"
+    }
+  ],
+  "browser": [
+    {
+      "name": "Registration invalid input",
+      "status": "PASSED"
+    },
+    {
+      "name": "Registration valid input and automatic Dashboard navigation",
+      "status": "PASSED"
+    },
+    {
+      "name": "Unauthenticated protected navigation",
+      "status": "PASSED"
+    },
+    {
+      "name": "Login and Dashboard",
+      "status": "PASSED"
+    },
+    {
+      "name": "Profile view and edit",
+      "status": "PASSED"
+    },
+    {
+      "name": "Policies navigation and detail",
+      "status": "PASSED"
+    },
+    {
+      "name": "Recommendations results",
+      "status": "PASSED"
+    },
+    {
+      "name": "My Policies saved result",
+      "status": "PASSED"
+    },
+    {
+      "name": "Claimability create and analyze",
+      "status": "PASSED"
+    },
+    {
+      "name": "Rejection Analysis with ML result",
+      "status": "PASSED"
+    },
+    {
+      "name": "Navigation links and completed loading states",
+      "status": "PASSED"
+    },
+    {
+      "name": "Unexpected HTTP errors",
+      "status": "PASSED",
+      "detail": "0 browser HTTP responses with status 400 or greater"
+    },
+    {
+      "name": "Uncaught JavaScript errors",
+      "status": "PASSED",
+      "detail": "0 uncaught runtime exceptions"
+    },
+    {
+      "name": "Failed network requests",
+      "status": "PASSED",
+      "detail": "0 uncanceled transport failures"
+    }
+  ],
+  "cleanup": [
+    {
+      "name": "Isolated browser profile",
+      "status": "PASSED",
+      "detail": "Removed this run\u2019s temporary browser profile after Chrome exited"
+    },
+    {
+      "name": "rejectioncases",
+      "status": "PASSED",
+      "detail": "Removed 2 verified synthetic records"
+    },
+    {
+      "name": "claimcases",
+      "status": "PASSED",
+      "detail": "Removed 2 verified synthetic records"
+    },
+    {
+      "name": "userpolicies",
+      "status": "PASSED",
+      "detail": "Removed 1 verified synthetic records"
+    },
+    {
+      "name": "rejectioncases",
+      "status": "PASSED",
+      "detail": "Removed 0 verified synthetic records"
+    },
+    {
+      "name": "claimcases",
+      "status": "PASSED",
+      "detail": "Removed 0 verified synthetic records"
+    },
+    {
+      "name": "userpolicies",
+      "status": "PASSED",
+      "detail": "Removed 0 verified synthetic records"
+    },
+    {
+      "name": "rejectioncases",
+      "status": "PASSED",
+      "detail": "Removed 0 verified synthetic records"
+    },
+    {
+      "name": "claimcases",
+      "status": "PASSED",
+      "detail": "Removed 0 verified synthetic records"
+    },
+    {
+      "name": "userpolicies",
+      "status": "PASSED",
+      "detail": "Removed 0 verified synthetic records"
+    },
+    {
+      "name": "Synthetic accounts",
+      "status": "PASSED",
+      "detail": "Removed 3 verified synthetic accounts"
+    }
+  ],
+  "filesChanged": [
+    "server/scripts/liveIntegrationAudit.js",
+    "INTEGRATION_AUDIT.md",
+    "INTEGRATION_AUDIT_RESULTS.json"
+  ],
+  "database": {
+    "connected": true,
+    "savedPolicyUniqueIndexPresent": true,
+    "catalogPolicyCount": 10
+  },
+  "finishedAt": "2026-10-12T05:11:25.908Z"
+}

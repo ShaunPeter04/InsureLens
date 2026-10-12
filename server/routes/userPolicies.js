@@ -1,5 +1,5 @@
 const express = require("express");
-const mongoose = require("mongoose");
+const { validateSavedPolicy } = require("../utils/insuranceValidation");
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
@@ -11,6 +11,31 @@ const auth = require("../middleware/auth");
 const policyUpload = require("../middleware/policyUpload");
 
 const router = express.Router();
+
+async function duplicatePolicy(user, data, sourceType) {
+    if (data.policyNumber) return UserPolicy.findOne({ user, policyNumber: data.policyNumber });
+    // Unnumbered catalog policies with identical coverage and dates are accidental repeats.
+    if (sourceType === "Catalog") return UserPolicy.findOne({
+        user, sourceType, policy: data.policyId, policyNumber: "",
+        selectedCoverage: data.selectedCoverage,
+        policyStartDate: new Date(data.policyStartDate), policyEndDate: new Date(data.policyEndDate)
+    });
+    return null;
+}
+
+// Return upload errors as JSON rather than Express's default HTML response.
+function receivePolicyDocument(req, res, next) {
+    policyUpload.single("policyDocument")(req, res, (error) => {
+        if (!error) return next();
+        if (error.code === "LIMIT_FILE_SIZE") {
+            return res.status(400).json({ message: "Policy PDF must be no larger than 10 MB" });
+        }
+        if (error.name === "MulterError" || error.code?.startsWith("LIMIT_") || error.message === "Only PDF policy documents are allowed.") {
+            return res.status(400).json({ message: "Upload one PDF policy document (maximum 10 MB)" });
+        }
+        return res.status(500).json({ message: "Unable to receive the policy PDF. Please try again." });
+    });
+}
 const extractPolicyText = async (file) => {
     const pdfBuffer = fs.readFileSync(
         path.resolve(file.path)
@@ -81,22 +106,9 @@ router.get("/", auth, async (req, res) => {
 
 router.post("/", auth, async (req, res) => {
     try {
-        const {
-            policyId,
-            selectedCoverage,
-            policyNumber,
-            policyStartDate,
-            policyEndDate
-        } = req.body;
-
-
-        // Validate policy ID
-        if (!mongoose.Types.ObjectId.isValid(policyId)) {
-            return res.status(400).json({
-                message: "Invalid policy ID"
-            });
-        }
-
+        const { error: validationError, data } = validateSavedPolicy(req.body);
+        if (validationError) return res.status(400).json({ message: validationError });
+        const { policyId, selectedCoverage: coverage, policyNumber, policyStartDate, policyEndDate } = data;
 
         // Find catalog policy
         const policy = await Policy.findOne({
@@ -111,41 +123,13 @@ router.post("/", auth, async (req, res) => {
         }
 
 
-        // Validate selected coverage
-        const coverage = Number(selectedCoverage);
-
-        if (
-            !Number.isFinite(coverage) ||
-            coverage <= 0 ||
-            !policy.coverageAmounts.includes(coverage)
-        ) {
-            return res.status(400).json({
-                message:
-                    "Selected coverage is not available for this policy"
-            });
+        const { error: coverageError } = validateSavedPolicy(req.body, { coverageAmounts: policy.coverageAmounts });
+        if (coverageError) return res.status(400).json({ message: coverageError });
+        if (await duplicatePolicy(req.user, data, "Catalog")) {
+            return res.status(400).json({ message: "This policy is already saved in your account" });
         }
-
-
-        // Validate dates
         const startDate = new Date(policyStartDate);
         const endDate = new Date(policyEndDate);
-
-        if (
-            Number.isNaN(startDate.getTime()) ||
-            Number.isNaN(endDate.getTime())
-        ) {
-            return res.status(400).json({
-                message: "Please provide valid policy dates"
-            });
-        }
-
-        if (endDate <= startDate) {
-            return res.status(400).json({
-                message:
-                    "Policy end date must be after the start date"
-            });
-        }
-
 
         // Create user-owned policy
         const userPolicy = await UserPolicy.create({
@@ -180,10 +164,9 @@ router.post("/", auth, async (req, res) => {
         });
 
     } catch (error) {
-        console.error(
-            "Add user policy error:",
-            error.message
-        );
+        if (error.name === "ValidationError" || error.name === "CastError") {
+            return res.status(400).json({ message: "Invalid policy details" });
+        }
 
         if (error.code === 11000) {
             return res.status(400).json({
@@ -206,8 +189,9 @@ router.post("/", auth, async (req, res) => {
 router.post(
     "/upload",
     auth,
-    policyUpload.single("policyDocument"),
+    receivePolicyDocument,
     async (req, res) => {
+        let saved = false;
         try {
             if (!req.file) {
                 return res.status(400).json({
@@ -215,48 +199,17 @@ router.post(
                 });
             }
 
-            const {
-                selectedCoverage,
-                policyNumber,
-                policyStartDate,
-                policyEndDate
-            } = req.body;
-
-
-            // Validate coverage
-            const coverage = Number(selectedCoverage);
-
-            if (
-                !Number.isFinite(coverage) ||
-                coverage <= 0
-            ) {
-                return res.status(400).json({
-                    message:
-                        "Please provide a valid coverage amount"
-                });
+            if (req.file.mimetype !== "application/pdf" || req.file.size <= 0 || req.file.size > 10 * 1024 * 1024) {
+                return res.status(400).json({ message: "Upload a nonempty policy PDF no larger than 10 MB" });
             }
-
-
-            // Validate dates
+            const { error: validationError, data } = validateSavedPolicy(req.body, { uploaded: true });
+            if (validationError) return res.status(400).json({ message: validationError });
+            if (await duplicatePolicy(req.user, data, "Uploaded")) {
+                return res.status(400).json({ message: "This policy number is already saved in your account" });
+            }
+            const { selectedCoverage: coverage, policyNumber, policyStartDate, policyEndDate } = data;
             const startDate = new Date(policyStartDate);
             const endDate = new Date(policyEndDate);
-
-            if (
-                Number.isNaN(startDate.getTime()) ||
-                Number.isNaN(endDate.getTime())
-            ) {
-                return res.status(400).json({
-                    message:
-                        "Please provide valid policy dates"
-                });
-            }
-
-            if (endDate <= startDate) {
-                return res.status(400).json({
-                    message:
-                        "Policy end date must be after the start date"
-                });
-            }
 
             // Extract text from uploaded PDF using FastAPI
             const extractionResult =
@@ -310,11 +263,11 @@ router.post(
                     waitingPeriods: {
                         initialDays:
                             extractionResult.extractedPolicyData
-                                ?.waitingPeriods?.initialDays ?? 0,
+                                ?.waitingPeriods?.initialDays ?? null,
 
                         specificIllnessesMonths:
                             extractionResult.extractedPolicyData
-                                ?.waitingPeriods?.specificIllnessesMonths ?? 0,
+                                ?.waitingPeriods?.specificIllnessesMonths ?? null,
 
                         specificIllnessConditions:
                             extractionResult.extractedPolicyData
@@ -322,7 +275,7 @@ router.post(
 
                         preExistingDiseasesMonths:
                             extractionResult.extractedPolicyData
-                                ?.waitingPeriods?.preExistingDiseasesMonths ?? 0
+                                ?.waitingPeriods?.preExistingDiseasesMonths ?? null
                     },
 
                     roomRentLimit: {
@@ -357,6 +310,7 @@ router.post(
             });
 
 
+            saved = true;
             return res.status(201).json({
                 message:
                     "Policy PDF uploaded successfully",
@@ -364,10 +318,9 @@ router.post(
             });
 
         } catch (error) {
-            console.error(
-                "Upload policy error:",
-                error
-            );
+            if (error.name === "ValidationError" || error.name === "CastError") {
+                return res.status(400).json({ message: "Invalid uploaded policy details" });
+            }
 
             if (error.code === 11000) {
                 return res.status(400).json({
@@ -380,6 +333,11 @@ router.post(
                 message:
                     "Failed to upload policy PDF"
             });
+        } finally {
+            // Only remove this request's temporary upload when no policy was saved.
+            if (!saved && req.file?.path) {
+                await fs.promises.unlink(req.file.path).catch(() => {});
+            }
         }
     }
 );

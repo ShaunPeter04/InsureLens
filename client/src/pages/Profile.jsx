@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import "./Profile.css";
+import { validateProfile } from "../utils/profileValidation";
 
 function Profile() {
   const { user, updateProfile } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const saving = useRef(false);
 
   const [formData, setFormData] = useState({
     firstname: user?.firstname || "",
@@ -21,7 +24,7 @@ function Profile() {
     state: user?.state || "",
     pincode: user?.pincode || "",
     occupation: user?.occupation || "",
-    annualIncome: user?.annualIncome || "",
+    annualIncome: user?.annualIncome ?? "",
   });
 
   const handleEdit = () => {
@@ -38,7 +41,7 @@ function Profile() {
       state: user?.state || "",
       pincode: user?.pincode || "",
       occupation: user?.occupation || "",
-      annualIncome: user?.annualIncome || "",
+      annualIncome: user?.annualIncome ?? "",
     });
 
     setError("");
@@ -62,10 +65,17 @@ function Profile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (saving.current) return;
+    const { error: validationError, updates } = validateProfile(formData);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    saving.current = true;
+    setIsSaving(true);
     try {
       setError("");
-
-      await updateProfile(formData);
+      await updateProfile(updates);
 
       setIsEditing(false);
     } catch (error) {
@@ -73,6 +83,9 @@ function Profile() {
         error.response?.data?.message ||
           "Failed to update profile"
       );
+    } finally {
+      saving.current = false;
+      setIsSaving(false);
     }
   };
 
@@ -217,6 +230,8 @@ function Profile() {
             <form
               className="profile-form"
               onSubmit={handleSubmit}
+              noValidate
+              aria-busy={isSaving}
             >
 
               <FormField
@@ -329,7 +344,7 @@ function Profile() {
               />
 
               {error && (
-                <p className="profile-error">
+                <p className="profile-error" role="alert">
                   {error}
                 </p>
               )}
@@ -338,15 +353,17 @@ function Profile() {
 
                 <button
                   type="submit"
+                  disabled={isSaving}
                   className="profile-primary-button"
                 >
-                  Save Changes
+                  {isSaving ? "Saving..." : "Save Changes"}
                 </button>
 
                 <button
                   type="button"
                   className="profile-secondary-button"
                   onClick={handleCancel}
+                  disabled={isSaving}
                 >
                   Cancel
                 </button>

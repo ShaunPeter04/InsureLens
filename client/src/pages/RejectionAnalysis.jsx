@@ -1,14 +1,19 @@
+import { formatWaitingDate } from "../utils/waitingPeriodDisplay";
+import { validRejectionAnalysis } from "../utils/analysisResponseValidation";
 
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import axios from "axios";
 
 import "./RejectionAnalysis.css";
+import { validateRejectionCase } from "../utils/insuranceValidation";
 
 
 
 function RejectionAnalysis() {
+  const saving = useRef(false);
+  const savedCase = useRef(null);
 
   const [userPolicies, setUserPolicies] = useState([]);
 
@@ -162,14 +167,44 @@ function RejectionAnalysis() {
 
 
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (saving.current) return;
+  const { error: validationError, data: payload } = validateRejectionCase(formData);
+  if (validationError) { setError(validationError); return; }
+  if (!userPolicies.some(policy => policy._id === payload.userPolicy)) {
+    setError("Please select a policy from your account."); return;
+  }
+  if (payload.claimCase && !filteredClaimCases.some(claim => claim._id === payload.claimCase)) {
+    setError("Select a hospitalization case linked to this policy."); return;
+  }
 
-    e.preventDefault();
+  setError("");
+  setSuccess("");
+  setAnalysisResult(null);
 
+  const reason = `${formData.rejectionReason || ""} ${formData.insurerRemarks || ""}`
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
+  const requiresHospitalization =
+    reason.includes("initial waiting") ||
+    reason.includes("waiting period") ||
+    reason.includes("first 30 days") ||
+    reason.includes("30 day waiting") ||
+    reason.includes("policy too new");
 
-    setSubmitting(true);
+  if (requiresHospitalization && !formData.claimCase) {
+    setError(
+      "Please select a hospitalization case to verify the waiting period."
+    );
+    return;
+  }
 
+  saving.current = true;
+  setSubmitting(true);
     setError("");
 
     setSuccess("");
@@ -180,49 +215,15 @@ function RejectionAnalysis() {
 
     try {
 
-      const payload = {
-
-        userPolicy: formData.userPolicy,
-
-        rejectionReason: formData.rejectionReason,
-
-        insurerRemarks: formData.insurerRemarks,
-
-        rejectedAmount: Number(
-
-          formData.rejectedAmount || 0
-
-        ),
-
-        ...(formData.claimCase && {
-
-          claimCase: formData.claimCase,
-
-        }),
-
-        ...(formData.rejectionDate && {
-
-          rejectionDate: formData.rejectionDate,
-
-        }),
-
-      };
-
-
-
-      const response = await axios.post(
-
-        "/api/rejection-cases",
-
-        payload
-
-      );
-
-
-
-      const createdCase = response.data.rejectionCase;
-
-
+      const signature = JSON.stringify(payload);
+      let createdCase = savedCase.current?.signature === signature ? savedCase.current.case : null;
+      if (!createdCase) {
+        const response = await axios.post("/api/rejection-cases", {
+          ...payload, rejectionDate: payload.rejectionDate || undefined
+        });
+        createdCase = response.data.rejectionCase;
+        savedCase.current = { signature, case: createdCase };
+      }
 
       const analysisResponse = await axios.get(
 
@@ -232,6 +233,9 @@ function RejectionAnalysis() {
 
 
 
+      if (!validRejectionAnalysis(analysisResponse.data)) {
+        throw new Error("Analysis service returned incomplete results");
+      }
       setAnalysisResult(analysisResponse.data);
 
       setSuccess(
@@ -246,12 +250,13 @@ function RejectionAnalysis() {
 
         err.response?.data?.message ||
 
-        "Failed to analyze the rejection case."
+        (savedCase.current ? "Rejection case was saved, but analysis failed. Submit again to retry analysis." : "Failed to analyze the rejection case.")
 
       );
 
     } finally {
 
+      saving.current = false;
       setSubmitting(false);
 
     }
@@ -296,7 +301,7 @@ function RejectionAnalysis() {
 
       {error && (
 
-        <p className="rejection-error">{error}</p>
+        <p className="rejection-error" role="alert">{error}</p>
 
       )}
 
@@ -327,6 +332,8 @@ function RejectionAnalysis() {
           className="rejection-form"
 
           onSubmit={handleSubmit}
+          noValidate
+          aria-busy={submitting}
 
         >
 
@@ -792,11 +799,11 @@ function RejectionAnalysis() {
 
             {analysisResult.analysis.detailedWaitingPeriodAnalysis &&
 
-  analysisResult.analysis.categories.some((category) =>
+  (analysisResult.analysis.waitingPeriodVerification?.applicable || analysisResult.analysis.categories.some((category) =>
 
     ["Waiting Period", "Pre-existing Disease"].includes(category)
 
-  ) && (
+  )) && (
 
     <div className="rejection-section">
 
@@ -815,6 +822,10 @@ function RejectionAnalysis() {
       </p>
 
 
+
+      {analysisResult.analysis.detailedWaitingPeriodAnalysis.policyWordingToReview?.length > 0 && (
+        <ul>{analysisResult.analysis.detailedWaitingPeriodAnalysis.policyWordingToReview.map((wording, index) => <li key={index}>{wording}</li>)}</ul>
+      )}
 
       <div className="rejection-waiting-grid">
 
@@ -859,6 +870,7 @@ function RejectionAnalysis() {
 
 
             <strong>{data?.status || "Not Available"}</strong>
+            {data?.timelineStatus && <p>Recorded timeline: {data.timelineStatus}</p>}
 
 
 
@@ -870,13 +882,9 @@ function RejectionAnalysis() {
 
               <p className="rejection-waiting-date">
 
-                <strong>Recorded waiting-period end:</strong>{" "}
+                <strong>Calculated waiting-period boundary:</strong>{" "}
 
-                {new Date(data.waitingEndDate).toLocaleDateString(
-
-                  "en-IN"
-
-                )}
+                {formatWaitingDate(data.waitingEndDate)}
 
               </p>
 
@@ -933,21 +941,49 @@ function RejectionAnalysis() {
 
                         </strong>
 
+                        {clause.field === "waitingPeriods" &&
+                        clause.value &&
+                        typeof clause.value === "object" &&
+                        !Array.isArray(clause.value) ? (
+                        <div className="waiting-period-details">
+                            <p>
+                            <strong>Initial Waiting Period:</strong>{" "}
+                            {clause.value.initialDays ?? "Not specified"} days
+                            </p>
 
+                            <p>
+                            <strong>Specific Illness Waiting Period:</strong>{" "}
+                            {clause.value.specificIllnessesMonths ?? "Not specified"} months
+                            </p>
 
+                            <p>
+                            <strong>Pre-existing Disease Waiting Period:</strong>{" "}
+                            {clause.value.preExistingDiseasesMonths ?? "Not specified"} months
+                            </p>
+
+                            {Array.isArray(clause.value.specificIllnessConditions) &&
+                            clause.value.specificIllnessConditions.length > 0 && (
+                                <div>
+                                <strong>Specific Illness Conditions:</strong>
+                                <ul>
+                                    {clause.value.specificIllnessConditions.map(
+                                    (condition, index) => (
+                                        <li key={index}>{condition}</li>
+                                    )
+                                    )}
+                                </ul>
+                                </div>
+                            )}
+                        </div>
+                        ) : (
                         <pre>
-
-                        {clause.value == null
-
+                            {clause.value == null
                             ? "Not available in stored policy data"
-
                             : typeof clause.value === "object"
-
                             ? JSON.stringify(clause.value, null, 2)
-
                             : String(clause.value)}
-
                         </pre>
+                        )}
 
                     </div>
 

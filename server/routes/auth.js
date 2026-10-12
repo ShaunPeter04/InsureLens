@@ -4,11 +4,27 @@ const jwt=require('jsonwebtoken');
 const User=require('../models/User');
 const auth=require('../middleware/auth');
 const router=express.Router();
+const { validateProfile } = require('../utils/profileValidation');
+const {
+  validateRegistration,
+  validateLogin
+} = require("../utils/authValidation");
 
 router.post('/register',async(req,res)=>{
     try{
-        const {firstname,lastname,email,mobile,password,dateOfBirth,gender,address,city,state,pincode,occupation,agreeToTerms,annualIncome}=req.body;
-        const existingEmail = await User.findOne({ email });
+        const validationError = validateRegistration(req.body);
+
+        if (validationError) {
+          return res.status(400).json({
+            message: validationError
+          });
+        }
+
+        const {email,mobile,password,agreeToTerms}=req.body;
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedMobile = mobile.trim();
+
+        const existingEmail = await User.findOne({ email: normalizedEmail });
 
         if (existingEmail) {
             return res.status(400).json({
@@ -16,7 +32,7 @@ router.post('/register',async(req,res)=>{
             });
         }
 
-        const existingMobile = await User.findOne({ mobile });
+        const existingMobile = await User.findOne({ mobile: normalizedMobile });
 
         if (existingMobile) {
             return res.status(400).json({
@@ -26,43 +42,22 @@ router.post('/register',async(req,res)=>{
         const salt=await bcrypt.genSalt(10);
         const passwordHash=await bcrypt.hash(password,salt);
         const newUser=new User({
-            firstname,
-            lastname,
-            email,
-            mobile,
-            passwordHash,
-            dateOfBirth,
-            gender,
-            address,
-            city,
-            state,
-            pincode,
-            occupation,
-            agreeToTerms,
-            annualIncome
+            ...validateProfile(req.body).updates,
+            email: normalizedEmail, passwordHash, agreeToTerms
         });
         await newUser.save();
         const token=jwt.sign({id:newUser._id},process.env.JWT_SECRET,{expiresIn:'1h'});
-        const user={
-    id:newUser._id,
-    firstname:newUser.firstname,
-    lastname:newUser.lastname,
-    email:newUser.email,
-    mobile:newUser.mobile,
-    dateOfBirth:newUser.dateOfBirth,
-    gender:newUser.gender,
-    address:newUser.address,
-    city:newUser.city,
-    state:newUser.state,
-    pincode:newUser.pincode,
-    occupation:newUser.occupation,
-    agreeToTerms:newUser.agreeToTerms,
-    annualIncome:newUser.annualIncome
-};
+        const user = {
+            id: newUser._id,
+            ...validateProfile(req.body).updates,
+            email: newUser.email,
+            dateOfBirth: newUser.dateOfBirth,
+            agreeToTerms: newUser.agreeToTerms
+        };
 
         res.status(201).json({message:'User registered successfully', token, user});
     } catch (error) {
-    console.error("Registration error:", error);
+    console.error("Registration failed");
 
     if (error.code === 11000) {
         const field = Object.keys(error.keyPattern || {})[0];
@@ -92,9 +87,18 @@ router.post('/register',async(req,res)=>{
 
 router.post('/login',async(req,res)=>{
     try{
-        const {email,password}=req.body;    
+        const validationError = validateLogin(req.body);
 
-        const user=await User.findOne({email});
+        if (validationError) {
+          return res.status(400).json({
+            message: validationError
+          });
+        }
+
+        const {email,password}=req.body;
+        const user = await User.findOne({
+          email: email.trim().toLowerCase()
+        });
         if(!user){
             return res.status(400).json({message:'Invalid credentials'});
         }
@@ -156,27 +160,10 @@ router.get("/profile", auth, async (req, res) => {
 
 router.put("/profile", auth, async (req, res) => {
   try {
-    const allowedFields = [
-      "firstname",
-      "lastname",
-      "mobile",
-      "dateOfBirth",
-      "gender",
-      "address",
-      "city",
-      "state",
-      "pincode",
-      "occupation",
-      "annualIncome"
-    ];
-
-    const updates = {};
-
-    allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        updates[field] = req.body[field];
-      }
-    });
+    const { error: validationError, updates } = validateProfile(req.body, { partial: true });
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
+    }
 
     if (updates.mobile) {
       const existingMobile = await User.findOne({
@@ -212,7 +199,9 @@ router.put("/profile", auth, async (req, res) => {
     });
 
   } catch (error) {
-  console.error("Profile update error:", error);
+  if (error.name === "ValidationError" || error.name === "CastError") {
+    return res.status(400).json({ message: "Invalid profile data" });
+  }
 
   if (error.code === 11000) {
     return res.status(400).json({

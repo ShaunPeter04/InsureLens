@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import "./MyPolicies.css";
+import { validateSavedPolicy } from "../utils/insuranceValidation";
 
 function MyPolicies() {
+  const saving = useRef(false);
   const [userPolicies, setUserPolicies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -36,10 +38,6 @@ function MyPolicies() {
         response.data.userPolicies || []
       );
     } catch (err) {
-      console.error(
-        "Failed to load user policies:",
-        err
-      );
 
       setError(
         err.response?.data?.message ||
@@ -63,10 +61,6 @@ useEffect(() => {
         response.data.userPolicies || []
       );
     } catch (err) {
-      console.error(
-        "Failed to load user policies:",
-        err
-      );
 
       setError(
         err.response?.data?.message ||
@@ -100,6 +94,7 @@ useEffect(() => {
 
   const handleUpload = async (event) => {
     event.preventDefault();
+    if (saving.current) return;
 
     setError("");
     setUploadSuccess("");
@@ -119,35 +114,20 @@ useEffect(() => {
       return;
     }
 
-    if (
-      !uploadForm.selectedCoverage ||
-      Number(uploadForm.selectedCoverage) <= 0
-    ) {
-      setError(
-        "Please enter a valid coverage amount."
-      );
+    if (uploadForm.policyDocument.size <= 0 || uploadForm.policyDocument.size > 10 * 1024 * 1024) {
+      setError("Policy PDF must be nonempty and no larger than 10 MB.");
       return;
     }
-
-    if (
-      !uploadForm.policyStartDate ||
-      !uploadForm.policyEndDate
-    ) {
-      setError(
-        "Please enter the policy start and end dates."
-      );
+    const { error: validationError, data } = validateSavedPolicy(uploadForm, { uploaded: true });
+    if (validationError) {
+      setError(validationError);
       return;
     }
-
-    if (
-      new Date(uploadForm.policyEndDate) <=
-      new Date(uploadForm.policyStartDate)
-    ) {
-      setError(
-        "Policy end date must be after the start date."
-      );
+    if (data.policyNumber && userPolicies.some(policy => policy.policyNumber === data.policyNumber)) {
+      setError("This policy number is already saved in your account.");
       return;
     }
+    saving.current = true;
 
     try {
       setUploading(true);
@@ -161,22 +141,22 @@ useEffect(() => {
 
       formData.append(
         "selectedCoverage",
-        uploadForm.selectedCoverage
+        data.selectedCoverage
       );
 
       formData.append(
         "policyNumber",
-        uploadForm.policyNumber
+        data.policyNumber
       );
 
       formData.append(
         "policyStartDate",
-        uploadForm.policyStartDate
+        data.policyStartDate
       );
 
       formData.append(
         "policyEndDate",
-        uploadForm.policyEndDate
+        data.policyEndDate
       );
 
       await axios.post(
@@ -200,10 +180,6 @@ useEffect(() => {
 
       await fetchUserPolicies();
     } catch (err) {
-      console.error(
-        "Failed to upload policy:",
-        err
-      );
 
       setError(
         err.response?.data?.message ||
@@ -211,6 +187,7 @@ useEffect(() => {
           "Failed to upload policy."
       );
     } finally {
+      saving.current = false;
       setUploading(false);
     }
   };
@@ -238,6 +215,7 @@ useEffect(() => {
         <button
           type="button"
           className="upload-policy-button"
+          disabled={uploading}
           onClick={() => {
             setShowUploadForm(
               (previous) => !previous
@@ -257,6 +235,8 @@ useEffect(() => {
         <form
           className="policy-upload-form"
           onSubmit={handleUpload}
+          noValidate
+          aria-busy={uploading}
         >
           <h2>Upload Your Policy</h2>
 
@@ -380,7 +360,7 @@ useEffect(() => {
       )}
 
       {error && (
-        <div className="my-policies-error">
+        <div className="my-policies-error" role="alert">
           {error}
         </div>
       )}

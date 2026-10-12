@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
 import "./auth.css";
 import "./Register.css";
+import { validateRegistration } from "../utils/authValidation";
 
 function Register() {
+    const saving = useRef(false);
     const [formData, setFormData] = useState({
         firstname: '',
         lastname: '',
@@ -42,20 +44,37 @@ function Register() {
         e.preventDefault();
         setError('');
 
-        if (formData.password !== confirmPassword) {
-            setError('Passwords do not match');
-            return;
+        if (saving.current) return;
+
+        const validationError = validateRegistration(
+        formData,
+        confirmPassword
+        );
+
+        if (validationError) {
+        setError(validationError);
+        return;
         }
 
+        saving.current = true;
         setIsSubmitting(true);
         try {
-            await register(formData);
+            await register({
+            ...formData,
+            firstname: formData.firstname.trim(),
+            lastname: formData.lastname.trim(),
+            email: formData.email.trim().toLowerCase(),
+            mobile: formData.mobile.trim(),
+            pincode: formData.pincode.trim(),
+            annualIncome: Number(formData.annualIncome)
+            });
             navigate('/dashboard');
         }
         catch (err) {
             setError(err.response?.data?.message || 'Registration failed');
         }
         finally {
+            saving.current = false;
             setIsSubmitting(false);
         }
     };

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
+from recommendation_validation import UserRequirements, RecommendationRequest
+from recommendation_assessment import assess_catalog_premium, assess_family_eligibility
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from typing import Optional
 from pypdf import PdfReader
 from io import BytesIO
 from rejection_predictor import predict_rejection
@@ -18,32 +19,6 @@ def health():
         "status": "ok",
         "service": "insurelens-ml-service"
     }
-
-class UserRequirements(BaseModel):
-    requiredCoverage: float
-    coverageType: str
-
-    age: int
-    gender: str
-    city: str
-
-    annualIncome: Optional[float] = None
-    budget: Optional[float] = None
-
-    preExistingDiseases: list[str] = []
-
-    isSmokerOrTobaccoUser: bool = False
-    alcoholConsumption: Optional[str] = None
-    hasHighRiskOccupation: bool = False
-
-    coPaymentPreference: Optional[float] = 0
-
-    roomRentPreference: Optional[str] = "No Restriction"
-
-
-class RecommendationRequest(BaseModel):
-    userRequirements: UserRequirements
-    policies: list[dict]
 
 class RejectionPredictionRequest(BaseModel):
     rejectionReason: str
@@ -70,21 +45,18 @@ def calculate_policy_score(policy, requirements):
     if requirements.coverageType not in policy_types:
         return None
 
-    # Get policy eligibility rules
-    eligibility = policy.get("eligibility", {})
-
-    # Family Floater eligibility
     if requirements.coverageType == "Family Floater":
-        if not eligibility.get("familyFloaterAllowed", False):
+        family = assess_family_eligibility(policy, requirements.insuredMembers)
+        if family["status"] == "Ineligible":
+            return None
+    else:
+        # Preserve the existing individual entry-age matching behavior.
+        eligibility = policy.get("eligibility") or {}
+        min_age = eligibility.get("minAge", 18)
+        max_age = eligibility.get("maxAge", 65)
+        if min_age is not None and requirements.age < min_age or max_age is not None and requirements.age > max_age:
             return None
 
-    # Age eligibility
-    min_age = eligibility.get("minAge", 18)
-    max_age = eligibility.get("maxAge", 65)
-
-    if requirements.age < min_age or requirements.age > max_age:
-        return None
-    
     matched_coverage = get_matched_coverage(
         policy.get("coverageAmounts", []),
         requirements.requiredCoverage
@@ -329,6 +301,8 @@ def recommend(request: RecommendationRequest):
             requirements.requiredCoverage
         )
 
+        premium = assess_catalog_premium(policy, requirements.budget)
+        family = assess_family_eligibility(policy, requirements.insuredMembers) if requirements.coverageType == "Family Floater" else None
         recommendations.append({
         "policyId": str(policy.get("_id", "")),
         "insuranceCompany": policy.get("insuranceCompany"),
@@ -336,7 +310,9 @@ def recommend(request: RecommendationRequest):
         "matchedCoverage": matched_coverage,
         "score": score_result["totalScore"],
         "scoreBreakdown": score_result["breakdown"],
-        "purchaseUrl": policy.get("purchaseUrl", "")
+        "purchaseUrl": policy.get("purchaseUrl", ""),
+        "premiumAssessment": premium,
+        **({"familyEligibility": family} if family is not None else {})
     })
 
     # Highest score first
@@ -354,7 +330,7 @@ def recommend(request: RecommendationRequest):
 def extract_basic_policy_info(text: str):
     insurance_company = ""
     policy_name = ""
-    initial_waiting_days = 0
+    initial_waiting_days = None
 
     # Insurance company
     company_match = re.search(
@@ -388,7 +364,7 @@ def extract_basic_policy_info(text: str):
             initial_waiting_match.group(1)
         )
 
-    specific_illness_months = 0
+    specific_illness_months = None
 
     specific_waiting_match = re.search(
         r"Specific\s+waiting\s+period\s*:\s*(\d+)\s*months",
@@ -511,7 +487,7 @@ def extract_basic_policy_info(text: str):
                 condition
             )
             
-    pre_existing_disease_months = 0
+    pre_existing_disease_months = None
 
     ped_waiting_match = re.search(
         r"Pre-\s*Existing\s+disease\s*-\s*(\d+)\s*months",

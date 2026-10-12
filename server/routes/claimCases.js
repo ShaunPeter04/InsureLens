@@ -1,10 +1,14 @@
 const express = require("express");
-const mongoose = require("mongoose");
+const { isValidId, validateClaimCase } = require("../utils/insuranceValidation");
 
 const ClaimCase = require("../models/ClaimCase");
 const UserPolicy = require("../models/UserPolicy");
 const User = require("../models/User");
 const auth = require("../middleware/auth");
+
+const { validateStoredAnalysis, diseases } = require("../utils/analysisValidation");
+
+const { analyzeWaitingPeriods, validDate } = require("../services/waitingPeriodAnalyzer");
 
 const router = express.Router();
 
@@ -19,6 +23,7 @@ router.get("/", auth, async (req, res) => {
         })
             .populate({
                 path: "userPolicy",
+            match: { user: req.user },
                 populate: {
                     path: "policy"
                 }
@@ -47,302 +52,31 @@ router.get("/", auth, async (req, res) => {
 
 router.post("/", auth, async (req, res) => {
     try {
-        const {
-            userPolicy,
-            patientType,
-            familyMember,
-            hospitalName,
-            hospitalizationType,
-            admissionDate,
-            admissionTime,
-            dischargeDate,
-            dischargeTime,
-            diagnosis,
-            treatment,
-            totalBillAmount,
-            roomRentPerDay,
-            roomType,
-            nonPayableExpenses = [],
-            isPlannedHospitalization,
-            isEmergency
-        } = req.body;
+        const { error, data } = validateClaimCase(req.body);
+        if (error) return res.status(400).json({ message: error });
 
-        // ------------------------------------------
-        // BASIC REQUIRED FIELDS
-        // ------------------------------------------
+        const savedPolicy = await UserPolicy.findOne({ _id: data.userPolicy, user: req.user });
+        if (!savedPolicy) return res.status(404).json({ message: "Policy was not found in your account" });
 
-        if (
-            !userPolicy ||
-            !patientType ||
-            !hospitalName?.trim() ||
-            !hospitalizationType ||
-            !admissionDate ||
-            !dischargeDate ||
-            !diagnosis?.trim()
-        ) {
-            return res.status(400).json({
-                message:
-                    "Please provide all required hospitalization details"
-            });
-        }
-
-        // ------------------------------------------
-        // VALIDATE USER POLICY ID
-        // ------------------------------------------
-
-        if (
-            !mongoose.Types.ObjectId.isValid(userPolicy)
-        ) {
-            return res.status(400).json({
-                message: "Invalid user policy ID"
-            });
-        }
-
-        const savedPolicy = await UserPolicy.findOne({
-            _id: userPolicy,
-            user: req.user
-        });
-
-        if (!savedPolicy) {
-            return res.status(404).json({
-                message:
-                    "Policy was not found in your account"
-            });
-        }
-
-        // ------------------------------------------
-        // PATIENT TYPE
-        // ------------------------------------------
-
-        if (
-            !["Self", "Family Member"].includes(
-                patientType
-            )
-        ) {
-            return res.status(400).json({
-                message: "Invalid patient type"
-            });
-        }
-
-        let validatedFamilyMember = null;
-
-        if (patientType === "Family Member") {
-            if (
-                !familyMember ||
-                !mongoose.Types.ObjectId.isValid(
-                    familyMember
-                )
-            ) {
-                return res.status(400).json({
-                    message:
-                        "Please select a valid family member"
-                });
-            }
-
+        let familyMember = null;
+        if (data.patientType === "Family Member") {
             const user = await User.findById(req.user);
-
-            if (!user) {
-                return res.status(404).json({
-                    message: "User not found"
-                });
-            }
-
-            const member =
-                user.familyMembers.id(familyMember);
-
-            if (!member) {
-                return res.status(400).json({
-                    message:
-                        "Selected family member does not belong to your account"
-                });
-            }
-
-            validatedFamilyMember = member._id;
+            if (!user) return res.status(404).json({ message: "User not found" });
+            const member = user.familyMembers.id(data.familyMember);
+            if (!member) return res.status(400).json({ message: "Selected family member does not belong to your account" });
+            familyMember = member._id;
         }
-
-        // ------------------------------------------
-        // DATES
-        // ------------------------------------------
-
-        const admission = new Date(admissionDate);
-        const discharge = new Date(dischargeDate);
-
-        if (
-            Number.isNaN(admission.getTime()) ||
-            Number.isNaN(discharge.getTime())
-        ) {
-            return res.status(400).json({
-                message:
-                    "Please provide valid hospitalization dates"
-            });
-        }
-
-        if (discharge < admission) {
-            return res.status(400).json({
-                message:
-                    "Discharge date cannot be before admission date"
-            });
-        }
-
-        // ------------------------------------------
-        // BILL AMOUNT
-        // ------------------------------------------
-
-        const billAmount = Number(totalBillAmount);
-
-        if (
-            !Number.isFinite(billAmount) ||
-            billAmount < 0
-        ) {
-            return res.status(400).json({
-                message:
-                    "Please provide a valid bill amount"
-            });
-        }
-
-        const roomRent = Number(
-            roomRentPerDay || 0
-        );
-
-        if (
-            !Number.isFinite(roomRent) ||
-            roomRent < 0
-        ) {
-            return res.status(400).json({
-                message:
-                    "Please provide a valid room rent amount"
-            });
-        }
-
-        // ------------------------------------------
-        // VALIDATE NON-PAYABLE EXPENSES
-        // ------------------------------------------
-
-        if (!Array.isArray(nonPayableExpenses)) {
-            return res.status(400).json({
-                message: "Non-payable expenses must be an array"
-            });
-        }
-
-        const validatedNonPayableExpenses = [];
-        let totalNonPayableExpenses = 0;
-
-        for (const expense of nonPayableExpenses) {
-            const expenseName =
-                typeof expense?.expenseName === "string"
-                    ? expense.expenseName.trim()
-                    : "";
-
-            const reason =
-                typeof expense?.reason === "string"
-                    ? expense.reason.trim()
-                    : "";
-
-            const amount = expense?.amount;
-
-            if (
-                !expenseName ||
-                typeof amount !== "number" ||
-                !Number.isFinite(amount) ||
-                amount <= 0
-            ) {
-                return res.status(400).json({
-                    message:
-                        "Each non-payable expense must have a name and a valid positive amount"
-                });
-            }
-
-            totalNonPayableExpenses += amount;
-
-            validatedNonPayableExpenses.push({
-                expenseName,
-                amount,
-                reason
-            });
-        }
-
-        if (
-            Math.round(totalNonPayableExpenses * 100) >
-            Math.round(billAmount * 100)
-        ) {
-            return res.status(400).json({
-                message:
-                    "Total non-payable expenses cannot exceed the hospital bill"
-            });
-        }
-
-        // ------------------------------------------
-        // CREATE CASE
-        // ------------------------------------------
 
         const claimCase = await ClaimCase.create({
-            user: req.user,
-            userPolicy: savedPolicy._id,
-
-            patientType,
-            familyMember: validatedFamilyMember,
-
-            hospitalName: hospitalName.trim(),
-            hospitalizationType,
-
-            admissionDate: admission,
-
-            admissionTime:
-                typeof admissionTime === "string"
-                    ? admissionTime.trim()
-                    : "",
-
-            dischargeDate: discharge,
-
-            dischargeTime:
-                typeof dischargeTime === "string"
-                    ? dischargeTime.trim()
-                    : "",
-
-            diagnosis: diagnosis.trim(),
-            treatment:
-                typeof treatment === "string"
-                    ? treatment.trim()
-                    : "",
-
-            totalBillAmount: billAmount,
-            roomRentPerDay: roomRent,
-
-            roomType:
-                typeof roomType === "string"
-                    ? roomType.trim()
-                    : "",
-            nonPayableExpenses: validatedNonPayableExpenses,
-            isPlannedHospitalization:
-                Boolean(isPlannedHospitalization),
-
-            isEmergency:
-                Boolean(isEmergency)
+            ...data, user: req.user, userPolicy: savedPolicy._id, familyMember
         });
-
-        await claimCase.populate({
-            path: "userPolicy",
-            populate: {
-                path: "policy"
-            }
-        });
-
-        return res.status(201).json({
-            message:
-                "Hospitalization case created successfully",
-            claimCase
-        });
-
+        await claimCase.populate({ path: "userPolicy", match: { user: req.user }, populate: { path: "policy" } });
+        return res.status(201).json({ message: "Hospitalization case created successfully", claimCase });
     } catch (error) {
-        console.error(
-            "Create claim case error:",
-            error
-        );
-
-        return res.status(500).json({
-            message:
-                "Failed to create hospitalization case"
-        });
+        if (error.name === "ValidationError" || error.name === "CastError") {
+            return res.status(400).json({ message: "Invalid hospitalization details" });
+        }
+        return res.status(500).json({ message: "Failed to create hospitalization case" });
     }
 });
 
@@ -353,7 +87,7 @@ router.post("/", auth, async (req, res) => {
 router.get("/:caseId/analyze", auth, async (req, res) => {
     try {
         if (
-            !mongoose.Types.ObjectId.isValid(
+            !isValidId(
                 req.params.caseId
             )
         ) {
@@ -367,10 +101,13 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
             user: req.user
         }).populate({
             path: "userPolicy",
+            match: { user: req.user },
             populate: {
-                path: "policy"
-            }
-        });
+                path: "policy",
+                options: { lean: false }
+            },
+            options: { lean: false }
+        }).lean(); // Preserve malformed legacy dates for strict calendar validation.
 
         if (!claimCase) {
             return res.status(404).json({
@@ -405,6 +142,9 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
             policyData = userPolicy.policy;
         }
 
+        const analysisError = validateStoredAnalysis(claimCase, userPolicy, policyData, { allowIncompleteWaiting: true });
+        if (analysisError) return res.status(400).json({ message: `${analysisError}. Please complete the saved details before analysis.` });
+
         let patientPreExistingDiseases = [];
 
         if (claimCase.patientType === "Self") {
@@ -429,36 +169,20 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
                 member?.preExistingDiseases || [];
         }
 
-        const admissionDate =
-            new Date(claimCase.admissionDate);
+        if (!diseases(patientPreExistingDiseases)) {
+            return res.status(400).json({ message: "Pre-existing disease information is invalid. Please update the patient's profile." });
+        }
 
-        const policyStartDate =
-            new Date(userPolicy.policyStartDate);
-
-        const policyEndDate =
-            new Date(userPolicy.policyEndDate);
-
-        const policyActive =
-            admissionDate.getTime() >=
-                policyStartDate.getTime() &&
-            admissionDate.getTime() <=
-                policyEndDate.getTime();        
-
-        const millisecondsPerDay =1000 * 60 * 60 * 24;
-
-        const policyAgeDays = Math.floor(
-            (
-                admissionDate.getTime() -
-                policyStartDate.getTime()
-            ) / millisecondsPerDay
-        );
-        const initialWaitingDays =
-            policyData.waitingPeriods
-                ?.initialDays ?? 0;
-
-        const initialWaitingSatisfied =
-            initialWaitingDays === 0 ||
-            policyAgeDays >= initialWaitingDays;
+        const waiting = analyzeWaitingPeriods(policyData, userPolicy, claimCase);
+        const admissionDate = validDate(claimCase.admissionDate);
+        const policyStartDate = validDate(userPolicy.policyStartDate);
+        const policyEndDate = validDate(userPolicy.policyEndDate);
+        const policyActive = admissionDate && policyStartDate && policyEndDate
+            ? admissionDate >= policyStartDate && admissionDate <= policyEndDate && policyEndDate > policyStartDate
+            : null;
+        const policyAgeDays = waiting.policyAgeDays;
+        const initialWaitingDays = waiting.initial.waitingDays;
+        const initialWaitingSatisfied = waiting.initial.passed;
 
         const hospitalizationCoverage =
             policyData.hospitalizationCoverage;
@@ -479,7 +203,8 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
 
             if (
                 claimCase.admissionTime &&
-                claimCase.dischargeTime
+                claimCase.dischargeTime &&
+                validDate(claimCase.admissionDate) && validDate(claimCase.dischargeDate)
             ) {
                 const admission = new Date(
                     claimCase.admissionDate
@@ -708,117 +433,23 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
                     estimatedCoPayment
             );
 
-        const pedWaitingMonths =
-            Number(
-                    policyData.waitingPeriods
-                        ?.preExistingDiseasesMonths || 0
-            );
-
-        const hasPED =
-            patientPreExistingDiseases.length > 0;
-
-        const approximatePolicyAgeMonths =
-            Math.floor(policyAgeDays / 30.44);
-
-        // ------------------------------------------
-        // DIAGNOSIS-AWARE PED MATCHING
-        // ------------------------------------------
-
-        const normalizePEDText = (value = "") =>
-            value
-                .toLowerCase()
-                .replace(/[^a-z0-9\s]/g, " ")
-                .replace(/\s+/g, " ")
-                .trim();
-
-        const normalizedPEDClaimText =
-            normalizePEDText(
-                `${claimCase.diagnosis || ""} ${claimCase.treatment || ""}`
-            );
-
-        const matchedPreExistingDiseases =
-            patientPreExistingDiseases.filter((disease) => {
-                const normalizedDisease =
-                    normalizePEDText(disease);
-
-                if (!normalizedDisease) {
-                    return false;
-                }
-
-                return (
-                    normalizedPEDClaimText.includes(
-                        normalizedDisease
-                    ) ||
-                    normalizedDisease.includes(
-                        normalizedPEDClaimText
-                    )
-                );
-            });
-
-        const pedApplies =
-            matchedPreExistingDiseases.length > 0;
-
-        const pedWaitingCompleted =
-            pedWaitingMonths === 0 ||
-            approximatePolicyAgeMonths >=
-                pedWaitingMonths;
-
-        const pedWaitingSatisfied =
-            !pedApplies || pedWaitingCompleted;
-            
-        const specificIllnessWaitingMonths =
-            Number(
-                policyData.waitingPeriods
-                    ?.specificIllnessesMonths || 0
-            );
-
-        const specificIllnessConditions =
-            policyData.waitingPeriods
-                ?.specificIllnessConditions || [];
-
-        const specificIllnessWaitingCompleted =
-            specificIllnessWaitingMonths === 0 ||
-            approximatePolicyAgeMonths >=
-                specificIllnessWaitingMonths;
-
-        // ------------------------------------------
-        // SPECIFIC ILLNESS / PROCEDURE MATCHING
-        // ------------------------------------------
-
-        const normalizeSpecificIllnessText = (value = "") =>
-            value
-                .toLowerCase()
-                .replace(/[^a-z0-9\s]/g, " ")
-                .replace(/\s+/g, " ")
-                .trim();
-
-        const normalizedClaimText =
-            normalizeSpecificIllnessText(
-                `${claimCase.diagnosis || ""} ${claimCase.treatment || ""}`
-            );
-
-        const matchedSpecificIllnessConditions =
-            specificIllnessConditions.filter((condition) => {
-                const normalizedCondition =
-                    normalizeSpecificIllnessText(condition);
-
-                if (!normalizedCondition) {
-                    return false;
-                }
-
-                return (
-                    normalizedClaimText.includes(normalizedCondition) ||
-                    normalizedCondition.includes(normalizedClaimText)
-                );
-            });
-
-        const specificIllnessApplies =
-            matchedSpecificIllnessConditions.length > 0;
-
-        const specificIllnessWaitingSatisfied =
-            !specificIllnessApplies ||
-            specificIllnessWaitingCompleted;
-        
+        // Declared history and diagnosis text are review hints, not independent
+        // proof that this hospitalization is for a pre-existing disease.
+        const normalizedDiagnosis = typeof claimCase.diagnosis === "string"
+            ? claimCase.diagnosis.trim().toLowerCase() : "";
+        const matchedPreExistingDiseases = patientPreExistingDiseases.filter(disease =>
+            disease.trim().toLowerCase() === normalizedDiagnosis
+        );
+        const pedWaitingPeriod = {
+            ...waiting.preExistingDisease,
+            requiredMonths: waiting.preExistingDisease.waitingMonths,
+            patientPreExistingDiseases,
+            matchedPreExistingDiseases
+        };
+        const specificIllnessWaitingPeriod = {
+            ...waiting.specificIllness,
+            requiredMonths: waiting.specificIllness.waitingMonths
+        };
 
         const majorExclusions =
             policyData.majorExclusions || [];
@@ -901,25 +532,8 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
 
         const blockingIssues = [];
 
-        // Specific illness waiting-period blocker
-        if (
-            specificIllnessApplies &&
-            !specificIllnessWaitingCompleted
-        ) {
-            blockingIssues.push(
-                `The ${specificIllnessWaitingMonths}-month specific illness waiting period has not been completed for: ${matchedSpecificIllnessConditions.join(", ")}.`
-            );
-        }
-
-        // PED waiting-period blocker
-        if (
-            pedApplies &&
-            !pedWaitingCompleted
-        ) {
-            blockingIssues.push(
-                `The ${pedWaitingMonths}-month pre-existing disease waiting period has not been completed for: ${matchedPreExistingDiseases.join(", ")}.`
-            );
-        }
+        // Waiting timelines never establish PED/specific-illness applicability
+        // from text alone. These assessments remain in manual review.
 
         // Major exclusion blocker
         if (hasMatchedExclusion) {
@@ -936,45 +550,18 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
             policyActive: {
                 passed: policyActive,
 
-                message: policyActive
-                    ? "Policy was active on the admission date."
-                    : "Policy was not active on the admission date."
+                message: policyActive === null
+                    ? "Policy commencement, end date or admission information is missing or invalid."
+                    : policyActive ? "Policy was active on the admission date." : "Policy was not active on the admission date."
             },
 
+            detailedWaitingPeriodAnalysis: waiting,
             initialWaitingPeriod: {
-                passed: initialWaitingSatisfied,
-
+                ...waiting.initial,
                 policyAgeDays,
-                requiredDays: initialWaitingDays,
-
-                message: initialWaitingSatisfied
-                    ? `Initial waiting period of ${initialWaitingDays} days was completed.`
-                    : `Initial waiting period of ${initialWaitingDays} days was not completed. Policy was only ${policyAgeDays} days old on admission.`
+                requiredDays: initialWaitingDays
             },
-        pedWaitingPeriod: {
-            passed: pedWaitingSatisfied,
-
-            applicable: pedApplies,
-
-            patientPreExistingDiseases,
-
-            matchedPreExistingDiseases,
-
-            requiredMonths: pedWaitingMonths,
-
-            approximatePolicyAgeMonths,
-
-            completed: pedWaitingCompleted,
-
-            message:
-                !hasPED
-                    ? "No pre-existing diseases are recorded for this patient."
-                    : !pedApplies
-                        ? "The current diagnosis/treatment does not directly match the patient's recorded pre-existing diseases."
-                        : pedWaitingCompleted
-                            ? `The current diagnosis/treatment matches a recorded pre-existing disease, but the ${pedWaitingMonths}-month PED waiting period has been completed.`
-                            : `The current diagnosis/treatment matches a recorded pre-existing disease, and the ${pedWaitingMonths}-month PED waiting period has not been completed.`
-        },   
+            pedWaitingPeriod,
          hospitalizationCoverage: {
                 passed:
                     hospitalizationCovered && minimumHoursSatisfied,
@@ -991,6 +578,8 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
                 message:
                     !hospitalizationCovered
                         ? `${claimCase.hospitalizationType} hospitalization is not marked as covered under this policy.`
+                        : hospitalizationHours === null && claimCase.hospitalizationType === "Inpatient"
+                            ? "Hospitalization duration cannot be verified from the recorded dates and times."
                         : !minimumHoursSatisfied
                             ? `Hospitalization duration was ${hospitalizationHours?.toFixed(1)} hours, below the required ${requiredHospitalizationHours} hours.`
                             : claimCase.hospitalizationType ===
@@ -1071,29 +660,9 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
                     "This is a preliminary estimate after deducting user-reported non-payable expenses and applying the stored sum-insured limit, co-payment, and deductible. Reported expenses have not been independently verified against the insurer's policy. Additional deductions may apply for other non-payable items, room-rent restrictions, treatment sub-limits, policy exclusions, and other applicable conditions. The final payable amount must be verified against the insurer's claim settlement statement.",
             },
             requiresReview: {
-                specificIllnessWaitingPeriod: {
-                    requiredMonths:
-                        specificIllnessWaitingMonths,
-
-                    completed:
-                        specificIllnessWaitingCompleted,
-
-                    applicable:
-                        specificIllnessApplies,
-
-                    passed:
-                        specificIllnessWaitingSatisfied,
-
-                    matchedConditions:
-                        matchedSpecificIllnessConditions,
-
-                    message:
-                        !specificIllnessApplies
-                            ? "The current diagnosis/treatment does not directly match any stored condition in the specific-illness waiting-period list."
-                            : specificIllnessWaitingCompleted
-                                ? `The current diagnosis/treatment matches the specific-illness waiting-period list, but the ${specificIllnessWaitingMonths}-month waiting period has already been completed.`
-                                : `The current diagnosis/treatment matches the specific-illness waiting-period list, and the ${specificIllnessWaitingMonths}-month waiting period has not yet been completed.`
-                },
+                pedWaitingPeriod,
+                specificIllnessWaitingPeriod,
+                waitingPolicyWording: waiting.policyWordingToReview,
 
                 exclusionCheck: {
                     matched:
@@ -1192,20 +761,13 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
             assessment = "Very Weak Match";
         }
 
-        console.log("MANUAL REVIEW DEBUG", {
-            hasMatchedExclusion,
-            matchedExclusions,
-            matchedSubLimits,
-            preExistingConditionsRules,
-            importantConditions
-        });
-
 const requiresManualReview =
     hasMatchedExclusion ||
     matchedSubLimits.length > 0 ||
     preExistingConditionsRules.length > 0 ||
     importantConditions.length > 0 ||
-    roomRentPassed === null;
+    roomRentPassed === null ||
+    waiting.requiresManualReview;
 
 if (
     requiresManualReview &&
@@ -1227,10 +789,7 @@ if (
         });
 
     } catch (error) {
-        console.error(
-            "Analyze claim case error:",
-            error
-        );
+        console.error("Analyze claim case failed");
 
         return res.status(500).json({
             message:

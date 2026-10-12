@@ -171,86 +171,39 @@ const RULES = [
   }
 ];
 
-function analyzeRejection(rejectionCase, policyData, userPolicy, claimCase) {
+function analyzeRejection(rejectionCase, policyData, userPolicy, claimCase,) {
 
-    const waitingPeriodVerification = {
-    applicable: false,
-    verified: false,
-    status: "Insufficient Information",
-    message: ""
-    };
+    const detailedWaitingPeriodAnalysis = analyzeWaitingPeriods(
+    policyData,
+    userPolicy,
+    claimCase
+    );
+
+
 
     const rejectionText = normalize(
     `${rejectionCase.rejectionReason || ""} ${rejectionCase.insurerRemarks || ""}`
     );
 
-    if (
+    const initialWaitingApplicable =
     rejectionText.includes("waiting period") ||
-    rejectionText.includes("initial waiting")
-    ) {
-    waitingPeriodVerification.applicable = true;
+    rejectionText.includes("initial waiting") ||
+    rejectionText.includes("first 30 days") ||
+    rejectionText.includes("30 day waiting") ||
+    rejectionText.includes("policy too new");
 
-    const policyStart = userPolicy?.policyStartDate
-        ? new Date(userPolicy.policyStartDate)
-        : null;
+    const initialResult = detailedWaitingPeriodAnalysis.initial;
 
-    const admissionDate = claimCase?.admissionDate
-        ? new Date(claimCase.admissionDate)
-        : null;
+    const waitingPeriodVerification = {
+      applicable: initialWaitingApplicable,
+      verified: ["Waiting Period Completed", "Waiting Period Not Completed"].includes(initialResult.status),
+      status: initialResult.status,
+      waitingEndDate: initialResult.waitingEndDate,
+      requiresManualReview: true,
+      message: initialResult.message
+    };
 
-    const rawInitialWaitingDays =
-        policyData?.waitingPeriods?.initialDays;
-
-    const initialWaitingDays =
-        rawInitialWaitingDays === null ||
-        rawInitialWaitingDays === undefined ||
-        rawInitialWaitingDays === ""
-            ? null
-            : Number(rawInitialWaitingDays);
-
-    const hasValidWaitingPeriod =
-        initialWaitingDays !== null &&
-        Number.isFinite(initialWaitingDays) &&
-        initialWaitingDays >= 0;
-        if (
-            policyStart &&
-            admissionDate &&
-            Number.isFinite(policyStart.getTime()) &&
-            Number.isFinite(admissionDate.getTime()) &&
-            hasValidWaitingPeriod
-        ) {
-            const policyAgeDays = Math.floor(
-            (admissionDate - policyStart) /
-            (1000 * 60 * 60 * 24)
-            );
-
-            waitingPeriodVerification.verified = true;
-
-            if (policyAgeDays < initialWaitingDays) {
-            waitingPeriodVerification.status =
-                "Waiting Period Not Completed";
-
-            waitingPeriodVerification.message =
-                `The hospitalization occurred ${policyAgeDays} days after policy commencement. The initial waiting period is ${initialWaitingDays} days. Check whether any exception applies.`;
-            } else {
-            waitingPeriodVerification.status =
-                "Waiting Period Completed";
-
-            waitingPeriodVerification.message =
-                `The hospitalization occurred ${policyAgeDays} days after policy commencement, exceeding the ${initialWaitingDays}-day initial waiting period. The stated initial-waiting-period rejection may warrant reconsideration.`;
-            }
-            } else {
-                waitingPeriodVerification.message =
-                !hasValidWaitingPeriod
-                    ? "The policy's initial waiting-period duration is unavailable or invalid. Manual verification against the policy wording is required."
-                    : "A valid policy commencement date and linked hospitalization admission date are required to verify the initial waiting period.";
-            }
-        }
-
-    const text = normalize(
-        `${rejectionCase.rejectionReason || ""} ${rejectionCase.insurerRemarks || ""}`
-    );
-
+    const text = rejectionText;
     const matches = RULES.map((rule) => ({
         rule,
         matchedKeywords: rule.keywords.filter((keyword) =>
@@ -294,7 +247,7 @@ function analyzeRejection(rejectionCase, policyData, userPolicy, claimCase) {
         : "Not Independently Verified";
 
     const initialWaitingReason =
-  /\binitial waiting\b|\bfirst 30 days\b|\b30 day waiting\b|\bpolicy too new\b/.test(text);
+    /\binitial waiting\b|\bfirst 30 days\b|\b30 day waiting\b|\bpolicy too new\b/.test(text);
 
     const otherWaitingReason =
     /\bspecific (?:disease|illness)\b|\bpre existing\b|\bpreexisting\b|\bped\b|\bdisease specific\b/.test(text);
@@ -331,70 +284,64 @@ function analyzeRejection(rejectionCase, policyData, userPolicy, claimCase) {
         "Keep copies of the rejection letter, claim documents, correspondence, and insurer responses."
     ])
     ];
-  const policyClausesToReview = [];
+    const policyClausesToReview = [];
 
-  if (
-    categories.includes("Waiting Period") ||
-    categories.includes("Pre-existing Disease")
-  ) {
-    policyClausesToReview.push({
-      field: "waitingPeriods",
-      value: policyData?.waitingPeriods ?? null
-    });
-  }
+    if (
+        categories.includes("Waiting Period") ||
+        categories.includes("Pre-existing Disease")
+    ) {
+        policyClausesToReview.push({
+        field: "waitingPeriods",
+        value: policyData?.waitingPeriods ?? null
+        });
+    }
 
-  if (categories.includes("Pre-existing Disease")) {
-    policyClausesToReview.push({
-      field: "preExistingConditionsRules",
-      value: policyData?.preExistingConditionsRules ?? []
-    });
-  }
+    if (categories.includes("Pre-existing Disease")) {
+        policyClausesToReview.push({
+        field: "preExistingConditionsRules",
+        value: policyData?.preExistingConditionsRules ?? []
+        });
+    }
 
-  if (categories.includes("Policy Exclusion")) {
-    policyClausesToReview.push({
-      field: "majorExclusions",
-      value: policyData?.majorExclusions ?? []
-    });
-  }
+    if (categories.includes("Policy Exclusion")) {
+        policyClausesToReview.push({
+        field: "majorExclusions",
+        value: policyData?.majorExclusions ?? []
+        });
+    }
 
-  if (categories.includes("Hospitalization")) {
-    policyClausesToReview.push({
-      field: "hospitalizationCoverage",
-      value: policyData?.hospitalizationCoverage ?? null
-    });
-  }
+    if (categories.includes("Hospitalization")) {
+        policyClausesToReview.push({
+        field: "hospitalizationCoverage",
+        value: policyData?.hospitalizationCoverage ?? null
+        });
+    }
 
-  if (categories.includes("Room Rent or Sub-limit")) {
-    policyClausesToReview.push(
-      {
-        field: "roomRentLimit",
-        value: policyData?.roomRentLimit ?? null
-      },
-      {
-        field: "subLimits",
-        value: policyData?.subLimits ?? []
-      }
-    );
-  }
+    if (categories.includes("Room Rent or Sub-limit")) {
+        policyClausesToReview.push(
+        {
+            field: "roomRentLimit",
+            value: policyData?.roomRentLimit ?? null
+        },
+        {
+            field: "subLimits",
+            value: policyData?.subLimits ?? []
+        }
+        );
+    }
 
-  if (categories.includes("Financial Deduction")) {
-    policyClausesToReview.push(
-      {
-        field: "coPaymentPercentage",
-        value: policyData?.coPaymentPercentage ?? null
-      },
-      {
-        field: "deductibleAmount",
-        value: policyData?.deductibleAmount ?? null
-      }
-    );
-  }
-
-  const detailedWaitingPeriodAnalysis = analyzeWaitingPeriods(
-    policyData,
-    userPolicy,
-    claimCase
-    );
+    if (categories.includes("Financial Deduction")) {
+        policyClausesToReview.push(
+        {
+            field: "coPaymentPercentage",
+            value: policyData?.coPaymentPercentage ?? null
+        },
+        {
+            field: "deductibleAmount",
+            value: policyData?.deductibleAmount ?? null
+        }
+        );
+    }
 
   return {
     classificationMethod: "Rule-based keyword matching",
@@ -406,15 +353,15 @@ function analyzeRejection(rejectionCase, policyData, userPolicy, claimCase) {
       categories.length > 0
         ? categories
         : ["Unclassified"],
-    matchedKeywords: matches.flatMap(
-      (entry) => entry.matchedKeywords
-    ),
+        matchedKeywords: filteredMatches.flatMap(
+        (entry) => entry.matchedKeywords
+        ),
     explanations:
-      matches.length > 0
-        ? matches.map((entry) => entry.rule.explanation)
+    filteredMatches.length > 0
+        ? filteredMatches.map((entry) => entry.rule.explanation)
         : [
             "The supplied rejection reason could not be classified automatically."
-          ],
+      ],
     policyClausesToReview,
     recoveryActions:
       recoveryActions.length > 0

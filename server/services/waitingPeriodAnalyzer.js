@@ -1,180 +1,119 @@
+const { calendarDate, todayDate } = require('../utils/insuranceValidation');
 
-const normalize = (value = "") =>
-  String(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+const normalize = value => typeof value === 'string'
+  ? value.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
+  : '';
 
-const validDate = (value) => {
-  if (!value) return null;
-
-  const date = new Date(value);
-  return Number.isFinite(date.getTime()) ? date : null;
-};
-
-const validNonNegativeNumber = (value) => {
-  if (value === null || value === undefined || value === "") {
-    return null;
+// Calendar-only input: UTC Date objects, YYYY-MM-DD, or midnight UTC ISO JSON.
+function validDate(value) {
+  if (value instanceof Date) {
+    return Number.isFinite(value.getTime()) ? calendarDate(value.toISOString().slice(0, 10)) : null;
   }
+  if (typeof value !== 'string') return null;
+  if (/^\d{4}-\d{2}-\d{2}T00:00:00(?:\.000)?Z$/.test(value)) return calendarDate(value.slice(0, 10));
+  return calendarDate(value);
+}
 
-  const number = Number(value);
+const duration = value => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
 
-  return Number.isFinite(number) && number >= 0
-    ? number
-    : null;
-};
+function addMonths(date, months) {
+  date = validDate(date);
+  if (!date || duration(months) === null) return null;
+  const target = new Date(date);
+  target.setUTCDate(1);
+  target.setUTCMonth(target.getUTCMonth() + months);
+  if (!Number.isFinite(target.getTime()) || target.getUTCFullYear() > 9999) return null;
+  const last = new Date(target);
+  last.setUTCMonth(last.getUTCMonth() + 1);
+  last.setUTCDate(0);
+  target.setUTCDate(Math.min(date.getUTCDate(), last.getUTCDate()));
+  return validDate(target);
+}
 
-const addMonths = (date, months) => {
-  if (!date || !Number.isInteger(months)) return null;
-
+function addDays(date, days) {
+  if (!date || duration(days) === null) return null;
   const result = new Date(date);
-  const originalDay = result.getUTCDate();
+  result.setUTCDate(result.getUTCDate() + days);
+  return validDate(result);
+}
 
-  result.setUTCDate(1);
-  result.setUTCMonth(result.getUTCMonth() + months);
+function definition(waiting, field, savedPolicy, policyData) {
+  const value = duration(waiting[field]);
+  if (value === null) return null;
+  if (savedPolicy?.sourceType !== 'Uploaded') {
+    if (typeof policyData?.$isDefault === 'function' && (policyData.$isDefault(`waitingPeriods.${field}`) || policyData.$isDefault('waitingPeriods'))) return null;
+    return value;
+  }
+  // Old uploads defaulted absent terms to zero. Do not turn an extraction default
+  // into a verified zero-day/month period. Confirm the stored term in source text.
+  const source = savedPolicy.uploadedDocument?.extractedText;
+  if (typeof source !== 'string' || !source.trim()) return null;
+  const expressions = {
+    initialDays: [/Initial\s+waiting\s+period\s*:\s*(\d+)\s*days/gi],
+    specificIllnessesMonths: [/Specific\s+waiting\s+period\s*:\s*(\d+)\s*months/gi, /List\s+of\s+Diseases\s+excluded\s+for\s+(\d+)\s+months\s*:/gi],
+    preExistingDiseasesMonths: [/Pre-\s*Existing\s+disease\s*-\s*(\d+)\s*months/gi]
+  };
+  const values = expressions[field].flatMap(expression => [...source.matchAll(expression)].map(match => Number(match[1])));
+  return values.length && values.every(number => number === value) ? value : null;
+}
 
-  const lastDay = new Date(
-    Date.UTC(
-      result.getUTCFullYear(),
-      result.getUTCMonth() + 1,
-      0
-    )
-  ).getUTCDate();
-
-  result.setUTCDate(Math.min(originalDay, lastDay));
-  return result;
-};
+function timeline(start, admission, amount, unit, dateIssue) {
+  const end = unit === 'days' ? addDays(start, amount) : addMonths(start, amount);
+  const base = {
+    status: 'Insufficient Information', completed: null, passed: null,
+    waitingEndDate: end, policyCommencementDate: start, admissionDate: admission,
+    ...(unit === 'days' ? { waitingDays: amount } : { waitingMonths: amount }),
+    boundaryRequiresReview: false, requiresManualReview: true,
+    message: 'Policy commencement, admission date or a recorded waiting-period definition is missing or invalid.'
+  };
+  if (dateIssue) return { ...base, status: 'Date Inconsistency', passed: false, message: dateIssue };
+  if (!start || !admission || amount === null || !end) return base;
+  if (amount > 0 && admission.getTime() === end.getTime()) {
+    return { ...base, status: 'Manual Review Required', boundaryRequiresReview: true,
+      message: 'Admission is exactly on the calculated waiting-period boundary. The stored wording does not establish whether this day is included; verify the exact policy clause.' };
+  }
+  const completed = amount === 0 || admission > end;
+  return { ...base, status: completed ? 'Waiting Period Completed' : 'Waiting Period Not Completed', completed, passed: completed,
+    message: completed
+      ? 'The recorded waiting-period timeline has elapsed. Completion does not guarantee claim approval; confirm policy wording, exceptions and continuity benefits.'
+      : 'The recorded waiting-period timeline has not elapsed. Verify policy-specific exceptions and continuity benefits before drawing a claim conclusion.' };
+}
 
 function analyzeWaitingPeriods(policyData, userPolicy, claimCase) {
-  const waitingPeriods = policyData?.waitingPeriods || {};
+  const waiting = policyData?.waitingPeriods || {};
+  const start = validDate(userPolicy?.policyStartDate);
+  const admission = validDate(claimCase?.admissionDate);
+  const end = validDate(userPolicy?.policyEndDate);
+  const discharge = validDate(claimCase?.dischargeDate);
+  let dateIssue = null;
+  if (start && admission && admission < start) dateIssue = 'The admission date is before the policy commencement date. Verify the dates before assessing waiting periods.';
+  else if (userPolicy?.policyEndDate != null && (!end || start && end <= start)) dateIssue = 'The recorded policy period is invalid or inconsistent. Verify commencement and end dates.';
+  else if (claimCase?.dischargeDate != null && (!discharge || admission && discharge < admission)) dateIssue = 'The recorded discharge date is invalid or before admission. Verify the hospitalization dates.';
+  else if (admission && admission.toISOString().slice(0, 10) > todayDate() || discharge && discharge.toISOString().slice(0, 10) > todayDate()) dateIssue = 'A recorded hospitalization date is in the future. Verify the hospitalization dates.';
 
-  const policyStart = validDate(userPolicy?.policyStartDate);
-  const admissionDate = validDate(claimCase?.admissionDate);
+  const initial = timeline(start, admission, definition(waiting, 'initialDays', userPolicy, policyData), 'days', dateIssue);
+  const specific = timeline(start, admission, definition(waiting, 'specificIllnessesMonths', userPolicy, policyData), 'months', dateIssue);
+  const ped = timeline(start, admission, definition(waiting, 'preExistingDiseasesMonths', userPolicy, policyData), 'months', dateIssue);
+  const lists = [waiting.specificIllnessConditions, waiting.specificIllnessesConditions].filter(Array.isArray).flat();
+  const conditions = [...new Map(lists.filter(value => normalize(value)).map(value => [normalize(value), value.trim()])).values()];
   const diagnosis = normalize(claimCase?.diagnosis);
-
-  const initialDays = validNonNegativeNumber(
-    waitingPeriods.initialDays
-  );
-
-  const specificMonths = validNonNegativeNumber(
-    waitingPeriods.specificIllnessesMonths
-  );
-
-  const pedMonths = validNonNegativeNumber(
-    waitingPeriods.preExistingDiseasesMonths
-  );
-
-  const hasDates = Boolean(policyStart && admissionDate);
-  const admissionBeforePolicyStart =
-    hasDates && admissionDate < policyStart;
-
-  const initialEndDate =
-    hasDates && initialDays !== null
-      ? new Date(
-          policyStart.getTime() + initialDays * 86400000
-        )
-      : null;
-
-  const initial = {
-    status: "Insufficient Information",
-    waitingDays: initialDays,
-    waitingEndDate: initialEndDate,
-    message: "Policy dates or initial waiting-period information is missing."
-  };
-
-  if (admissionBeforePolicyStart) {
-    initial.status = "Date Inconsistency";
-    initial.message =
-      "The admission date is before the policy commencement date.";
-  } else if (initialEndDate && admissionDate) {
-    initial.status =
-      admissionDate >= initialEndDate
-        ? "Waiting Period Completed"
-        : "Waiting Period Not Completed";
-
-    initial.message =
-      initial.status === "Waiting Period Completed"
-        ? "The recorded admission date is after the initial waiting-period end date. Exceptions and other policy conditions still require review."
-        : "The recorded admission date falls within the initial waiting period. Check policy exceptions and continuity benefits.";
-  }
-
-  const listedConditions = Array.isArray(
-    waitingPeriods.specificIllnessesConditions
-  )
-    ? waitingPeriods.specificIllnessesConditions
-    : [];
-
-  // Only exact normalized matches are treated as matches.
-  // Broad descriptions must be reviewed manually.
-  const matchedConditions = diagnosis
-    ? listedConditions.filter(
-        (condition) => normalize(condition) === diagnosis
-      )
-    : [];
-
-  const specificEndDate =
-    policyStart && Number.isInteger(specificMonths)
-      ? addMonths(policyStart, specificMonths)
-      : null;
-
-  const specificIllness = {
-    status: "Manual Review Required",
-    waitingMonths: specificMonths,
-    waitingEndDate: specificEndDate,
-    matchedConditions,
-    message:
-      "The diagnosis must be compared with the policy's specific-illness list and exact policy wording."
-  };
-
-  if (admissionBeforePolicyStart) {
-    specificIllness.status = "Date Inconsistency";
-    specificIllness.message =
-      "The admission date is before the policy commencement date.";
-  } else if (matchedConditions.length && specificEndDate && admissionDate) {
-    specificIllness.status =
-      admissionDate >= specificEndDate
-        ? "Waiting Period Completed"
-        : "Waiting Period Not Completed";
-
-    specificIllness.message =
-      "An exact diagnosis match was found in the stored list. Confirm the condition and policy clause before relying on this result.";
-  } else if (specificEndDate && admissionDate) {
-    specificIllness.message =
-      admissionDate >= specificEndDate
-        ? "The recorded specific-illness waiting-period timeline has elapsed, but diagnosis applicability has not been verified."
-        : "The specific-illness waiting period may still be running. No exact diagnosis match was established; manual policy review is required.";
-  }
-
-  const pedEndDate =
-    policyStart && Number.isInteger(pedMonths)
-      ? addMonths(policyStart, pedMonths)
-      : null;
-
-  const preExistingDisease = {
-    status: admissionBeforePolicyStart
-      ? "Date Inconsistency"
-      : "Manual Review Required",
-    waitingMonths: pedMonths,
-    waitingEndDate: pedEndDate,
-    applicabilityVerified: false,
-    message:
-      "Pre-existing disease applicability cannot be determined from the claim diagnosis alone. Review medical history, disclosures, continuity benefits, and policy wording."
-  };
-
-  if (!admissionBeforePolicyStart && pedEndDate && admissionDate) {
-    preExistingDisease.message =
-      admissionDate >= pedEndDate
-        ? "The recorded PED waiting-period timeline has elapsed. Whether the condition is pre-existing and whether other provisions apply still require verification."
-        : "The recorded PED waiting-period timeline has not elapsed. This does not establish that the diagnosed condition is pre-existing.";
-  }
-
+  const matches = diagnosis ? conditions.filter(condition => normalize(condition) === diagnosis) : [];
+  const review = (result, message) => ({
+    ...result, timelineStatus: result.status,
+    status: ['Waiting Period Completed', 'Waiting Period Not Completed'].includes(result.status) ? 'Manual Review Required' : result.status,
+    passed: null, applicabilityVerified: false, applicable: null,
+    message: `${result.message} ${message}`
+  });
+  const specificIllness = { ...review(specific, 'Specific-illness applicability requires the exact policy clause and medical evidence. Diagnosis mentions are review hints, not established applicability.'), matchedConditions: matches };
+  const preExistingDisease = review(ped, 'Pre-existing disease applicability is not established by a diagnosis or declared disease name. Review disclosures, medical history and policy-specific evidence.');
+  const wording = [waiting.description, ...(Array.isArray(policyData?.preExistingConditionsRules) ? policyData.preExistingConditionsRules : []), ...(Array.isArray(policyData?.importantConditions) ? policyData.importantConditions : [])]
+    .filter(value => typeof value === 'string' && value.trim());
   return {
-    initial,
-    specificIllness,
-    preExistingDisease,
+    initial, specificIllness, preExistingDisease,
+    policyAgeDays: start && admission ? Math.floor((admission - start) / 86400000) : null,
+    policyWordingToReview: [...new Set(wording)],
     requiresManualReview: true
   };
 }
 
-module.exports = { analyzeWaitingPeriods };
+module.exports = { analyzeWaitingPeriods, validDate, addMonths };

@@ -1,5 +1,6 @@
 const express = require("express");
 const Policy = require("../models/Policy");
+const { isValidId } = require("../utils/insuranceValidation");
 
 const router = express.Router();
 
@@ -29,6 +30,7 @@ router.get("/", async (req, res) => {
 // Public route
 router.get("/:id", async (req, res) => {
   try {
+    if (!isValidId(req.params.id)) return res.status(400).json({ message: "Invalid policy ID" });
     const policy = await Policy.findById(req.params.id);
 
     if (!policy) {

@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
 import "./auth.css";
+import { validateLogin } from "../utils/authValidation";
 
 function Login() {
+    const saving = useRef(false);
     const [email, setEmail] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [password, setPassword] = useState('');
@@ -15,17 +17,27 @@ function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (saving.current) return;
+
+        const validationError = validateLogin(email, password);
+
+        if (validationError) {
+        setError(validationError);
+        return;
+        }
         setError('');
+        saving.current = true;
         setIsSubmitting(true);
 
         try {
-            await login(email, password);
+            await login(email.trim().toLowerCase(), password);
             navigate('/dashboard');
         }
         catch (err) {
             setError(err.response?.data?.message || 'Login failed');
         }
         finally {
+            saving.current = false;
             setIsSubmitting(false);
         }
     };

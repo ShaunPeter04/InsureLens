@@ -1,6 +1,8 @@
 const express = require("express");
 const axios = require("axios");
-const mongoose = require("mongoose");
+const { validateRecommendation, validRecommendationResults, diseases } = require("../utils/recommendationValidation");
+const { profileAge, validatePolicyTerms } = require("../utils/analysisValidation");
+const { isValidId, money } = require("../utils/insuranceValidation");
 
 const Policy = require("../models/Policy");
 const User = require("../models/User");
@@ -12,40 +14,7 @@ const router = express.Router();
 // HELPERS
 // --------------------------------------------------
 
-const calculateAge = (dateOfBirth) => {
-    if (!dateOfBirth) return null;
-
-    const today = new Date();
-    const birthDate = new Date(dateOfBirth);
-
-    if (
-        isNaN(birthDate.getTime()) ||
-        birthDate > today
-    ) {
-        return null;
-    }
-
-    let age =
-        today.getFullYear() -
-        birthDate.getFullYear();
-
-    const monthDifference =
-        today.getMonth() -
-        birthDate.getMonth();
-
-    if (
-        monthDifference < 0 ||
-        (
-            monthDifference === 0 &&
-            today.getDate() <
-                birthDate.getDate()
-        )
-    ) {
-        age--;
-    }
-
-    return age;
-};
+const calculateAge = profileAge;
 
 const mergeDiseases = (...diseaseLists) => {
     const diseaseMap = new Map();
@@ -82,6 +51,8 @@ const mergeDiseases = (...diseaseLists) => {
 
 router.post("/", auth, async (req, res) => {
     try {
+        const { error: validationError, data } = validateRecommendation(req.body);
+        if (validationError) return res.status(400).json({ message: validationError });
         const user =
             await User.findById(
                 req.user
@@ -97,36 +68,9 @@ router.post("/", auth, async (req, res) => {
         // BASIC INPUT VALIDATION
         // --------------------------------------------------
 
-        const requiredCoverage =
-            Number(
-                req.body.requiredCoverage
-            );
-
-        if (
-            !Number.isFinite(
-                requiredCoverage
-            ) ||
-            requiredCoverage <= 0
-        ) {
-            return res.status(400).json({
-                message:
-                    "Please provide a valid required coverage amount"
-            });
-        }
-
-        const coverageType =
-            req.body.coverageType;
-
-        if (
-            coverageType !==
-                "Individual" &&
-            coverageType !==
-                "Family Floater"
-        ) {
-            return res.status(400).json({
-                message:
-                    "Invalid coverage type"
-            });
+        const { requiredCoverage, coverageType } = data;
+        if (!["male", "female", "other"].includes(user.gender) || money(user.annualIncome) === null || typeof user.city !== "string" || !user.city.trim()) {
+            return res.status(400).json({ message: "Please complete valid gender, city and annual income details in your profile" });
         }
 
         // --------------------------------------------------
@@ -155,7 +99,7 @@ router.post("/", auth, async (req, res) => {
         const includeSelf =
             coverageType === "Individual"
                 ? true
-                : req.body.includeSelf ===
+                : data.includeSelf ===
                   true;
         if (includeSelf && selfAge === null) {
             return res.status(400).json({
@@ -182,10 +126,10 @@ router.post("/", auth, async (req, res) => {
 
                 preExistingDiseases:
                     Array.isArray(
-                        req.body
+                        data
                             .preExistingDiseases
                     )
-                        ? req.body
+                        ? data
                               .preExistingDiseases
                         : []
             });
@@ -200,7 +144,7 @@ router.post("/", auth, async (req, res) => {
             "Family Floater"
         ) {
             const selectedFamilyMembers =
-                req.body
+                data
                     .selectedFamilyMembers ||
                 [];
 
@@ -231,7 +175,7 @@ router.post("/", auth, async (req, res) => {
             const invalidId =
                 uniqueMemberIds.find(
                     (id) =>
-                        !mongoose.Types.ObjectId.isValid(
+                        !isValidId(
                             id
                         )
                 );
@@ -246,7 +190,7 @@ router.post("/", auth, async (req, res) => {
             }
 
             const savedFamilyMembers =
-                user.familyMembers || [];
+                Array.isArray(user.familyMembers) ? user.familyMembers : [];
 
             /*
              * Important security check:
@@ -287,13 +231,13 @@ router.post("/", auth, async (req, res) => {
                     );
 
                 if (
-                    memberAge === null
+                    memberAge === null || !["male", "female", "other"].includes(typeof member.gender === "string" ? member.gender.toLowerCase() : "") || !diseases(member.preExistingDiseases)
                 ) {
                     return res
                         .status(400)
                         .json({
                             message:
-                                `Invalid date of birth for ${member.name}`
+                                "Please update the selected family member’s date of birth, gender or disease details"
                         });
                 }
 
@@ -364,15 +308,8 @@ router.post("/", auth, async (req, res) => {
         // AGE USED BY CURRENT V1 ALGORITHM
         // --------------------------------------------------
 
-        /*
-         * Current FastAPI schema accepts
-         * one age only.
-         *
-         * For Family Floater V1 we use
-         * the eldest selected insured
-         * person's age.
-         */
-
+        // Keep the legacy scalar age for API compatibility. Family matching uses
+        // every server-derived insured member below rather than this maximum.
         const recommendationAge =
             Math.max(
                 ...insuredMembers.map(
@@ -410,7 +347,7 @@ router.post("/", auth, async (req, res) => {
             coverageType,
 
             budget:
-                req.body.budget ??
+                data.budget ??
                 null,
 
             preExistingDiseases:
@@ -418,35 +355,39 @@ router.post("/", auth, async (req, res) => {
 
             isSmokerOrTobaccoUser:
                 Boolean(
-                    req.body
+                    data
                         .isSmokerOrTobaccoUser
                 ),
 
             alcoholConsumption:
-                req.body
+                data
                     .alcoholConsumption ||
                 "Never",
 
             hasHighRiskOccupation:
                 Boolean(
-                    req.body
+                    data
                         .hasHighRiskOccupation
                 ),
 
             coPaymentPreference:
-                req.body
+                data
                     .coPaymentPreference ??
                 0,
 
             roomRentPreference:
-                req.body
+                data
                     .roomRentPreference ||
                 "No Restriction",
 
-            /*
-             * Current V1:
-             * eldest selected insured
-             */
+            insuredMembers: insuredMembers.map(member => ({
+                memberType: member.memberType,
+                relationship: member.relationship || null,
+                age: member.age,
+                ...(typeof member.isDependent === "boolean" ? { isDependent: member.isDependent } : {})
+            })),
+
+            // Retained for older clients and individual coverage.
             age:
                 recommendationAge,
 
@@ -465,20 +406,23 @@ router.post("/", auth, async (req, res) => {
                 user.city || "",
 
             annualIncome:
-                user.annualIncome ??
-                null
+                Number(user.annualIncome)
         };
 
         // --------------------------------------------------
         // POLICIES
         // --------------------------------------------------
 
-        const policies =
+        const catalogPolicies =
             await Policy.find({
                 isActiveCatalogPlan:
                     true
             }).lean();
 
+        const policies = catalogPolicies.filter(policy => !validatePolicyTerms(policy, { recommendation: true }));
+        if (catalogPolicies.length > 0 && policies.length === 0) {
+            return res.status(503).json({ message: "Policy information is incomplete. Please try again later." });
+        }
         if (
             policies.length === 0
         ) {
@@ -523,16 +467,12 @@ router.post("/", auth, async (req, res) => {
         // RESPONSE
         // --------------------------------------------------
 
-        return res.json(
-            mlResponse.data
-        );
+        if (!validRecommendationResults(mlResponse.data?.recommendations) || mlResponse.data.recommendations.some(item => !policies.some(policy => String(policy._id) === item.policyId))) {
+            return res.status(502).json({ message: "Recommendation service returned incomplete results. Please try again." });
+        }
+        return res.json(mlResponse.data);
 
     } catch (error) {
-    console.error(
-        "Recommendation error:",
-        error.response?.data || error.message
-    );
-
     // ML service timed out
     if (error.code === "ECONNABORTED") {
         return res.status(504).json({

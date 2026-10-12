@@ -2,6 +2,9 @@ const express = require("express");
 const User = require("../models/User");
 const auth = require("../middleware/auth");
 
+const { validateFamilyMember } = require("../utils/recommendationValidation");
+const { isValidId } = require("../utils/insuranceValidation");
+
 const router = express.Router();
 
 
@@ -34,6 +37,7 @@ router.get("/", auth, async (req, res) => {
 // DELETE a family member
 router.delete("/:memberId", auth, async (req, res) => {
     try {
+        if (!isValidId(req.params.memberId)) return res.status(400).json({ message: "Invalid family member ID" });
         const user = await User.findById(req.user);
 
         if (!user) {
@@ -70,6 +74,9 @@ router.delete("/:memberId", auth, async (req, res) => {
 // UPDATE a family member
 router.put("/:memberId", auth, async (req, res) => {
     try {
+        if (!isValidId(req.params.memberId)) return res.status(400).json({ message: "Invalid family member ID" });
+        const { error: validationError, data } = validateFamilyMember(req.body, { partial: true });
+        if (validationError) return res.status(400).json({ message: validationError });
         const user = await User.findById(req.user);
 
         if (!user) {
@@ -86,53 +93,7 @@ router.put("/:memberId", auth, async (req, res) => {
             });
         }
 
-        const {
-            name,
-            relationship,
-            dateOfBirth,
-            gender,
-            occupation,
-            isDependent,
-            preExistingDiseases
-        } = req.body;
-
-        // Validate DOB if it is being updated
-        if (dateOfBirth !== undefined) {
-            const birthDate = new Date(dateOfBirth);
-
-            if (isNaN(birthDate.getTime()) || birthDate > new Date()) {
-                return res.status(400).json({
-                    message: "Please provide a valid date of birth"
-                });
-            }
-
-            member.dateOfBirth = birthDate;
-        }
-
-        // Update only supplied fields
-        if (name !== undefined) {
-            member.name = name;
-        }
-
-        if (relationship !== undefined) {
-            member.relationship = relationship;
-        }
-
-        if (gender !== undefined) {
-            member.gender = gender;
-        }
-
-        if (occupation !== undefined) {
-            member.occupation = occupation;
-        }
-
-        if (isDependent !== undefined) {
-            member.isDependent = isDependent;
-        }
-
-        if (preExistingDiseases !== undefined) {
-            member.preExistingDiseases = preExistingDiseases;
-        }
+        Object.assign(member, data);
 
         await user.save();
 
@@ -154,36 +115,8 @@ router.put("/:memberId", auth, async (req, res) => {
 // ADD a new family member
 router.post("/", auth, async (req, res) => {
     try {
-        const {
-            name,
-            relationship,
-            dateOfBirth,
-            gender,
-            occupation,
-            isDependent,
-            preExistingDiseases
-        } = req.body;
-
-        // Basic validation
-        if (
-            !name ||
-            !relationship ||
-            !dateOfBirth ||
-            !gender ||
-            typeof isDependent !== "boolean"
-        ) {
-            return res.status(400).json({
-                message: "Please provide all required family member details"
-            });
-        }
-
-        const birthDate = new Date(dateOfBirth);
-
-        if (isNaN(birthDate.getTime()) || birthDate > new Date()) {
-            return res.status(400).json({
-                message: "Please provide a valid date of birth"
-            });
-        }
+        const { error: validationError, data } = validateFamilyMember(req.body);
+        if (validationError) return res.status(400).json({ message: validationError });
 
         const user = await User.findById(req.user);
 
@@ -193,15 +126,7 @@ router.post("/", auth, async (req, res) => {
             });
         }
 
-        user.familyMembers.push({
-            name,
-            relationship,
-            dateOfBirth: birthDate,
-            gender,
-            occupation: occupation || "",
-            isDependent,
-            preExistingDiseases: preExistingDiseases || []
-        });
+        user.familyMembers.push(data);
 
         await user.save();
 

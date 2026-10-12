@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import axios from "axios";
 import RecommendationCard from "../components/RecommendationCard";
 import "./Recommendations.css";
+import { validateRecommendation, validateFamilyMember, validRecommendationResults } from "../utils/recommendationValidation";
 
 function Recommendations() {
+  const requesting = useRef(false);
+  const savingMember = useRef(false);
+  const [hasRequested, setHasRequested] = useState(false);
   const [formData, setFormData] = useState({
     requiredCoverage: "",
     coverageType: "Individual",
@@ -274,7 +278,7 @@ function Recommendations() {
       name: member.name || "",
       relationship: member.relationship || "",
       dateOfBirth: formatDateForInput(member.dateOfBirth),
-      gender: member.gender || "",
+      gender: member.gender?.toLowerCase() || "",
       occupation: member.occupation || "",
       isDependent: Boolean(member.isDependent),
       preExistingDiseases: member.preExistingDiseases || [],
@@ -356,37 +360,10 @@ function Recommendations() {
   // ==================================================
 
   const handleSaveFamilyMember = async () => {
-    const name = familyMemberForm.name.trim();
-
-    if (
-      !name ||
-      !familyMemberForm.relationship ||
-      !familyMemberForm.dateOfBirth ||
-      !familyMemberForm.gender
-    ) {
-      setFamilyMembersError(
-        "Please enter name, relationship, date of birth and gender."
-      );
-
-      return;
-    }
-
-    const age = calculateAge(familyMemberForm.dateOfBirth);
-
-    if (age === null || age < 0) {
-      setFamilyMembersError("Please provide a valid date of birth.");
-      return;
-    }
-
-    const payload = {
-      name,
-      relationship: familyMemberForm.relationship,
-      dateOfBirth: familyMemberForm.dateOfBirth,
-      gender: familyMemberForm.gender,
-      occupation: familyMemberForm.occupation.trim(),
-      isDependent: familyMemberForm.isDependent,
-      preExistingDiseases: familyMemberForm.preExistingDiseases,
-    };
+    if (savingMember.current) return;
+    const { error: validationError, data: payload } = validateFamilyMember(familyMemberForm);
+    if (validationError) { setFamilyMembersError(validationError); return; }
+    savingMember.current = true;
 
     try {
       setSavingFamilyMember(true);
@@ -463,6 +440,7 @@ function Recommendations() {
         err.response?.data?.message || "Failed to save family member."
       );
     } finally {
+      savingMember.current = false;
       setSavingFamilyMember(false);
     }
   };
@@ -595,83 +573,42 @@ function Recommendations() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (requesting.current) return;
     setError("");
-
-    if (
-      !formData.requiredCoverage ||
-      Number(formData.requiredCoverage) <= 0
-    ) {
-      setError("Please select or enter a valid coverage amount.");
-      return;
+    const { error: validationError, data: userRequirements } = validateRecommendation({
+      ...formData, preExistingDiseases,
+      includeSelf: formData.coverageType === "Family Floater" ? includeSelf : true,
+      selectedFamilyMembers: formData.coverageType === "Family Floater" ? selectedFamilyMembers : []
+    });
+    if (validationError) { setError(validationError); return; }
+    if (userRequirements.selectedFamilyMembers.some(id => !familyMembers.some(member => member._id === id))) {
+      setError("Select family members from your account."); return;
     }
-
-    if (
-      formData.coverageType === "Family Floater" &&
-      selectedPeopleCount < 2
-    ) {
-      setError(
-        "Please select at least 2 people for a Family Floater policy."
-      );
-
-      return;
-    }
-
+    requesting.current = true;
+    setHasRequested(false);
     try {
       setLoading(true);
       setRecommendations([]);
-
-      const userRequirements = {
-        requiredCoverage: Number(formData.requiredCoverage),
-
-        coverageType: formData.coverageType,
-
-        budget:
-          formData.budget === ""
-            ? null
-            : Number(formData.budget),
-
-        preExistingDiseases,
-
-        isSmokerOrTobaccoUser: formData.isSmokerOrTobaccoUser,
-
-        alcoholConsumption:
-          formData.alcoholConsumption || null,
-
-        hasHighRiskOccupation: formData.hasHighRiskOccupation,
-
-        coPaymentPreference: Number(
-          formData.coPaymentPreference
-        ),
-
-        roomRentPreference: formData.roomRentPreference,
-
-        includeSelf:
-          formData.coverageType === "Family Floater"
-            ? includeSelf
-            : true,
-
-        selectedFamilyMembers:
-          formData.coverageType === "Family Floater"
-            ? selectedFamilyMembers
-            : [],
-      };
 
       const response = await axios.post(
         "/api/recommendations",
         userRequirements
       );
 
-      setRecommendations(
-        response.data.recommendations || []
-      );
+      if (!validRecommendationResults(response.data?.recommendations)) {
+        setError("Recommendation service returned incomplete results. Please try again.");
+        return;
+      }
+      setRecommendations(response.data.recommendations);
+      setHasRequested(true);
     } catch (err) {
-      console.error("Recommendation error:", err);
 
       setError(
         err.response?.data?.message ||
           "Failed to generate recommendations."
       );
     } finally {
+      requesting.current = false;
       setLoading(false);
     }
   };
@@ -696,7 +633,6 @@ function Recommendations() {
 
       return true;
     } catch (err) {
-      console.error("Add policy error:", err);
 
       const message =
         err.response?.data?.message ||
@@ -727,6 +663,8 @@ function Recommendations() {
         <form
           className="recommendation-form"
           onSubmit={handleSubmit}
+          noValidate
+          aria-busy={loading}
         >
           {/* ==================================================
               SECTION 1
@@ -1090,15 +1028,15 @@ function Recommendations() {
                             Select gender
                           </option>
 
-                          <option value="Male">
+                          <option value="male">
                             Male
                           </option>
 
-                          <option value="Female">
+                          <option value="female">
                             Female
                           </option>
 
-                          <option value="Other">
+                          <option value="other">
                             Other
                           </option>
                         </select>
@@ -1600,7 +1538,7 @@ function Recommendations() {
           )}
 
           {error && (
-            <p className="recommendation-error">
+            <p className="recommendation-error" role="alert">
               {error}
             </p>
           )}
@@ -1611,6 +1549,9 @@ function Recommendations() {
           RESULTS
           ================================================== */}
 
+      {hasRequested && !loading && !error && recommendations.length === 0 && (
+        <p className="recommendation-status" role="status">No policies match these requirements. Try adjusting coverage or insured people.</p>
+      )}
       {recommendations.length > 0 && (
         <div className="recommendation-results">
           <h2>Recommended Policies</h2>

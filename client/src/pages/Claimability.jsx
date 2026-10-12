@@ -1,8 +1,13 @@
-import { useEffect, useState } from "react";
+import { formatWaitingDate } from "../utils/waitingPeriodDisplay";
+import { validClaimAnalysis } from "../utils/analysisResponseValidation";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import "./Claimability.css";
+import { validateClaimCase } from "../utils/insuranceValidation";
 
 function Claimability() {
+  const saving = useRef(false);
+  const savedCase = useRef(null);
   const [userPolicies, setUserPolicies] = useState([]);
   const [familyMembers, setFamilyMembers] = useState([]);
   const [loadingPolicies, setLoadingPolicies] =
@@ -59,10 +64,6 @@ function Claimability() {
             }));
         }
         } catch (err) {
-        console.error(
-            "Failed to load claimability data:",
-            err
-        );
 
         setError(
             err.response?.data?.message ||
@@ -117,65 +118,51 @@ const removeNonPayableExpense = (index) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (saving.current) return;
+    const { error: validationError, data: payload } = validateClaimCase({ ...formData, nonPayableExpenses });
+    if (validationError) { setError(validationError); return; }
+    if (!userPolicies.some(policy => policy._id === payload.userPolicy)) {
+      setError("Please select a policy from your account."); return;
+    }
+    if (payload.patientType === "Family Member" && !familyMembers.some(member => member._id === payload.familyMember)) {
+      setError("Please select a family member from your account."); return;
+    }
+    saving.current = true;
     try {
       setSubmitting(true);
       setError("");
       setSuccess("");
       setAnalysisResult(null);
 
-      const payload = {
-        ...formData,
-
-        totalBillAmount: Number(
-          formData.totalBillAmount
-        ),
-
-        roomRentPerDay: Number(
-          formData.roomRentPerDay || 0
-        ),
-
-        nonPayableExpenses: nonPayableExpenses.map(
-          (expense) => ({
-            expenseName: expense.expenseName.trim(),
-            amount: Number(expense.amount),
-            reason: expense.reason.trim(),
-          })
-        ),
-      };
-
-        const response = await axios.post(
-        "/api/claim-cases",
-        payload
-        );
-
-        const createdCase = response.data.claimCase;
+      // Retry analysis of the saved case rather than creating it again.
+      const signature = JSON.stringify(payload);
+      let createdCase = savedCase.current?.signature === signature ? savedCase.current.case : null;
+      if (!createdCase) {
+        const response = await axios.post("/api/claim-cases", payload);
+        createdCase = response.data.claimCase;
+        savedCase.current = { signature, case: createdCase };
+      }
 
         const analysisResponse = await axios.get(
         `/api/claim-cases/${createdCase._id}/analyze`
         );
 
-        console.log(
-        "Claimability Analysis:",
-        analysisResponse.data
-        );
-
-        setAnalysisResult(analysisResponse.data);
+        if (!validClaimAnalysis(analysisResponse.data)) {
+        throw new Error("Analysis service returned incomplete results");
+      }
+      setAnalysisResult(analysisResponse.data);
 
         setSuccess(
         "Hospitalization case created and analyzed successfully."
         );    
     } catch (err) {
-            console.error(
-                "Create claim case error:",
-                err
-            );
 
       setError(
         err.response?.data?.message ||
-          "Failed to create hospitalization case."
+          (savedCase.current ? "Hospitalization case was saved, but analysis failed. Submit again to retry analysis." : "Failed to create hospitalization case.")
       );
     } finally {
+      saving.current = false;
       setSubmitting(false);
     }
   };
@@ -192,6 +179,7 @@ const removeNonPayableExpense = (index) => {
     return (
       <div className="claimability-page">
         <h1>Claimability Analysis</h1>
+        {error && <p className="claimability-error" role="alert">{error}</p>}
 
         <p>
           Add a health insurance policy to My
@@ -211,7 +199,7 @@ const removeNonPayableExpense = (index) => {
       </p>
 
       {error && (
-        <p className="claimability-error">
+        <p className="claimability-error" role="alert">
           {error}
         </p>
       )}
@@ -225,6 +213,8 @@ const removeNonPayableExpense = (index) => {
       <form
         className="claimability-form"
         onSubmit={handleSubmit}
+        noValidate
+        aria-busy={submitting}
       >
         <div>
           <label htmlFor="userPolicy">
@@ -732,7 +722,9 @@ const removeNonPayableExpense = (index) => {
                 </h3>
               </div>
 
+              {check.status && <p><strong>{check.status}</strong></p>}
               <p>{check.message}</p>
+              {check.waitingEndDate && <p>Calculated waiting-period boundary: {formatWaitingDate(check.waitingEndDate)}</p>}
             </div>
           ))}
         </div>
@@ -858,6 +850,11 @@ const removeNonPayableExpense = (index) => {
             <div className="review-block">
               <h4>Pre-existing Disease Waiting Period</h4>
 
+              <p><strong>{analysisResult.analysis.requiresReview.pedWaitingPeriod.status}</strong></p>
+              <p>Recorded timeline: {analysisResult.analysis.requiresReview.pedWaitingPeriod.timelineStatus}</p>
+              {analysisResult.analysis.requiresReview.pedWaitingPeriod.waitingEndDate && (
+                <p>Calculated waiting-period boundary: {formatWaitingDate(analysisResult.analysis.requiresReview.pedWaitingPeriod.waitingEndDate)}</p>
+              )}
               <p>
                 {
                   analysisResult.analysis.requiresReview
@@ -869,7 +866,7 @@ const removeNonPayableExpense = (index) => {
                 .pedWaitingPeriod.matchedPreExistingDiseases
                 ?.length > 0 && (
                 <p>
-                  <strong>Matched:</strong>{" "}
+                  <strong>Diagnosis mention (unverified):</strong>{" "}
                   {analysisResult.analysis.requiresReview
                     .pedWaitingPeriod
                     .matchedPreExistingDiseases.join(", ")}
@@ -880,7 +877,11 @@ const removeNonPayableExpense = (index) => {
 
           <div className="review-block">
             <h4>Specific Illness Waiting Period</h4>
-
+            <p><strong>{analysisResult.analysis.requiresReview.specificIllnessWaitingPeriod.status}</strong></p>
+            <p>Recorded timeline: {analysisResult.analysis.requiresReview.specificIllnessWaitingPeriod.timelineStatus}</p>
+            {analysisResult.analysis.requiresReview.specificIllnessWaitingPeriod.waitingEndDate && (
+              <p>Calculated waiting-period boundary: {formatWaitingDate(analysisResult.analysis.requiresReview.specificIllnessWaitingPeriod.waitingEndDate)}</p>
+            )}
             <p>
               {
                 analysisResult.analysis.requiresReview
@@ -888,6 +889,13 @@ const removeNonPayableExpense = (index) => {
               }
             </p>
           </div>
+
+          {analysisResult.analysis.requiresReview.waitingPolicyWording?.length > 0 && (
+            <div className="review-block">
+              <h4>Waiting-period wording to verify</h4>
+              <ul>{analysisResult.analysis.requiresReview.waitingPolicyWording.map((wording, index) => <li key={index}>{wording}</li>)}</ul>
+            </div>
+          )}
 
           {analysisResult.analysis.requiresReview
             .preExistingConditionRules.length > 0 && (

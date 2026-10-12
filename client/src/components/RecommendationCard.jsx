@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { validateSavedPolicy } from "../utils/insuranceValidation";
 import { useNavigate } from "react-router-dom";
 
 function RecommendationCard({
@@ -7,6 +8,9 @@ function RecommendationCard({
   onAddPolicy,
 }) {
   const navigate = useNavigate();
+  const saving = useRef(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [showAddPolicy, setShowAddPolicy] = useState(false);
@@ -40,23 +44,23 @@ function RecommendationCard({
   const handleAddPolicy = async (event) => {
     event.preventDefault();
 
-    const success = await onAddPolicy({
-      policyId: recommendation.policyId,
-      selectedCoverage: Number(policyForm.selectedCoverage),
-      policyNumber: policyForm.policyNumber,
-      policyStartDate: policyForm.policyStartDate,
-      policyEndDate: policyForm.policyEndDate,
-    });
-
-    if (success) {
-      setShowAddPolicy(false);
-
-      setPolicyForm({
-        selectedCoverage: recommendation.matchedCoverage || "",
-        policyNumber: "",
-        policyStartDate: "",
-        policyEndDate: "",
-      });
+    if (saving.current) return;
+    const { error: validationError, data } = validateSavedPolicy({ ...policyForm, policyId: recommendation.policyId });
+    setError(validationError || "");
+    if (validationError) return;
+    saving.current = true;
+    setIsSaving(true);
+    try {
+      const success = await onAddPolicy(data);
+      if (success) {
+        setShowAddPolicy(false);
+        setPolicyForm({ selectedCoverage: recommendation.matchedCoverage || "", policyNumber: "", policyStartDate: "", policyEndDate: "" });
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to save policy.");
+    } finally {
+      saving.current = false;
+      setIsSaving(false);
     }
   };
 
@@ -84,6 +88,35 @@ function RecommendationCard({
           {recommendation.score} / 100
         </p>
       </div>
+
+      {recommendation.premiumAssessment && (
+        <div className="recommendation-card-match">
+          <p><strong>Budget check:</strong> {recommendation.premiumAssessment.status}</p>
+          {recommendation.premiumAssessment.budget !== null && (
+            <p><strong>Your annual budget:</strong> {formatCurrency(recommendation.premiumAssessment.budget)}</p>
+          )}
+          {recommendation.premiumAssessment.annualPremium !== null && (
+            <p><strong>Verified annual premium:</strong> {formatCurrency(recommendation.premiumAssessment.annualPremium)}</p>
+          )}
+          {recommendation.premiumAssessment.basePremium !== null && (
+            <p><strong>Catalog base premium:</strong> {formatCurrency(recommendation.premiumAssessment.basePremium)} (pricing period unverified)</p>
+          )}
+          <p>{recommendation.premiumAssessment.message}</p>
+        </div>
+      )}
+
+      {recommendation.familyEligibility && (
+        <div className="recommendation-card-match">
+          <p><strong>Family eligibility:</strong> {recommendation.familyEligibility.status}</p>
+          <p>{recommendation.familyEligibility.message}</p>
+          {recommendation.familyEligibility.members.map((member, index) => (
+            <p key={index}>
+              <strong>{member.relationship || "Selected member"}{member.age !== null ? `, age ${member.age}` : ""}:</strong>{" "}
+              {member.ageStatus}. {member.message} Relationship eligibility: {member.relationshipStatus}.
+            </p>
+          ))}
+        </div>
+      )}
 
       {/* ACTIONS */}
       <div className="recommendation-card-actions">
@@ -121,6 +154,7 @@ function RecommendationCard({
 
         <button
           type="button"
+          disabled={isSaving}
           onClick={() => setShowAddPolicy((prev) => !prev)}
         >
           {showAddPolicy
@@ -134,6 +168,8 @@ function RecommendationCard({
         <form
           className="add-policy-form"
           onSubmit={handleAddPolicy}
+          noValidate
+          aria-busy={isSaving}
         >
           <h3>Add to My Policies</h3>
 
@@ -181,8 +217,9 @@ function RecommendationCard({
             />
           </label>
 
-          <button type="submit">
-            Save Policy
+          {error && <p className="recommendation-error" role="alert">{error}</p>}
+          <button type="submit" disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save Policy"}
           </button>
         </form>
       )}

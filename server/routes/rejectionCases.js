@@ -1,6 +1,6 @@
 
 const express = require("express");
-const mongoose = require("mongoose");
+const { isValidId, validateRejectionCase } = require("../utils/insuranceValidation");
 
 const RejectionCase = require("../models/RejectionCase");
 const UserPolicy = require("../models/UserPolicy");
@@ -10,9 +10,6 @@ const { analyzeRejection } = require("../services/rejectionAnalyzer");
 const { predictRejectionML } = require("../services/rejectionMLService");
 
 const router = express.Router();
-
-const isValidId = (id) =>
-  mongoose.Types.ObjectId.isValid(id);
 
 const cleanText = (value) =>
   typeof value === "string" ? value.trim() : "";
@@ -25,6 +22,7 @@ router.get("/", auth, async (req, res) => {
     })
       .populate({
         path: "userPolicy",
+        match: { user: req.user },
         populate: { path: "policy" }
       })
       .sort({ createdAt: -1 });
@@ -41,6 +39,8 @@ router.get("/", auth, async (req, res) => {
 // CREATE REJECTION CASE
 router.post("/", auth, async (req, res) => {
   try {
+    const { error: validationError, data } = validateRejectionCase(req.body);
+    if (validationError) return res.status(400).json({ message: validationError });
     const {
       userPolicy,
       claimCase,
@@ -48,7 +48,7 @@ router.post("/", auth, async (req, res) => {
       insurerRemarks,
       rejectedAmount,
       rejectionDate
-    } = req.body;
+    } = data;
 
     if (!isValidId(userPolicy)) {
       return res.status(400).json({
@@ -60,6 +60,28 @@ router.post("/", auth, async (req, res) => {
       return res.status(400).json({
         message: "Rejection reason is required"
       });
+    }
+
+    const reasonText = cleanText(
+    `${rejectionReason || ""} ${insurerRemarks || ""}`
+    )
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+    const requiresHospitalization =
+    reasonText.includes("initial waiting") ||
+    reasonText.includes("waiting period") ||
+    reasonText.includes("first 30 days") ||
+    reasonText.includes("30 day waiting") ||
+    reasonText.includes("policy too new");
+
+    if (requiresHospitalization && !claimCase) {
+    return res.status(400).json({
+        message:
+        "Please select a hospitalization case to verify the waiting period."
+    });
     }
 
     const savedPolicy = await UserPolicy.findOne({
@@ -96,25 +118,8 @@ router.post("/", auth, async (req, res) => {
       }
     }
 
-    const amount = Number(rejectedAmount ?? 0);
-
-    if (!Number.isFinite(amount) || amount < 0) {
-      return res.status(400).json({
-        message: "Invalid rejected amount"
-      });
-    }
-
-    let parsedDate = null;
-
-    if (rejectionDate) {
-      parsedDate = new Date(rejectionDate);
-
-      if (Number.isNaN(parsedDate.getTime())) {
-        return res.status(400).json({
-          message: "Invalid rejection date"
-        });
-      }
-    }
+    const amount = rejectedAmount;
+    const parsedDate = rejectionDate ? new Date(rejectionDate) : null;
 
     const rejectionCase = await RejectionCase.create({
       user: req.user,
@@ -131,7 +136,9 @@ router.post("/", auth, async (req, res) => {
       rejectionCase
     });
   } catch (error) {
-    console.error("Create rejection case error:", error);
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: "Invalid rejection details" });
+    }
     return res.status(500).json({
       message: "Failed to create rejection case"
     });
@@ -152,6 +159,7 @@ router.get("/:caseId", auth, async (req, res) => {
       user: req.user
     }).populate({
       path: "userPolicy",
+        match: { user: req.user },
       populate: { path: "policy" }
     });
 
@@ -187,6 +195,7 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
       user: req.user
     }).populate({
       path: "userPolicy",
+        match: { user: req.user },
       populate: {
         path: "policy"
       }
@@ -227,8 +236,10 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
         _id: rejectionCase.claimCase,
         user: req.user,
         userPolicy: userPolicy._id
-    });
+    }).lean(); // Do not normalize impossible stored calendar dates through hydration.
+    if (!linkedClaimCase) return res.status(400).json({ message: "Linked hospitalization is unavailable or does not belong to this policy" });
     }
+
 
     const analysis = analyzeRejection(
     rejectionCase,
@@ -236,7 +247,6 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
     userPolicy,
     linkedClaimCase
     );
-    console.log("Rule-based analysis result:", analysis);
     const mlPrediction = await predictRejectionML(
     rejectionCase.rejectionReason,
     rejectionCase.insurerRemarks
@@ -255,7 +265,7 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Analyze rejection error:", error);
+    console.error("Analyze rejection failed");
 
     return res.status(500).json({
       message: "Failed to analyze rejected claim"
