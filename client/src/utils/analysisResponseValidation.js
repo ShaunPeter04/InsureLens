@@ -24,7 +24,7 @@ function validWaitingPeriods(value) {
 }
 
 export function validClaimAnalysis(value) {
-  if (!object(value) || !number(value.claimabilityScore) || !object(value.analysis)) return false;
+  if (!object(value) || !(number(value.claimabilityScore) || value.claimabilityScore === null && value.extractionReview?.status === "Unverified") || !object(value.analysis)) return false;
   const a = value.analysis;
   if (!validWaitingPeriods(a.detailedWaitingPeriodAnalysis)) return false;
   for (const field of ['policyActive', 'initialWaitingPeriod', 'hospitalizationCoverage', 'roomRent', 'coverage']) {
@@ -32,7 +32,7 @@ export function validClaimAnalysis(value) {
   }
   if (!number(a.coverage.totalBillAmount) || !object(a.financialImpact)) return false;
   for (const field of ['totalNonPayableExpenses', 'estimatedCoPayment', 'estimatedDeductible', 'estimatedAmountAfterBasicDeductions']) {
-    if (!number(a.financialImpact[field])) return false;
+    if (!number(a.financialImpact[field]) && !(field !== "totalNonPayableExpenses" && a.financialImpact[field] === null && value.extractionReview?.status === "Unverified")) return false;
   }
   if (!Array.isArray(a.financialImpact.nonPayableExpenses) || a.financialImpact.nonPayableExpenses.some(item => !object(item) || !number(item.amount) || typeof item.expenseName !== 'string' || typeof item.reason !== 'string')) return false;
   if (!object(a.requiresReview)) return false;
@@ -47,6 +47,11 @@ export function validClaimAnalysis(value) {
 export function validRejectionAnalysis(value) {
   if (!object(value?.analysis)) return false;
   const a = value.analysis;
+  const ml = value.mlPrediction;
+  if (ml !== undefined) {
+    if (!object(ml) || typeof ml.available !== 'boolean') return false;
+    if (ml.available && (typeof ml.primaryPrediction !== 'string' || typeof ml.decisionTreePrediction !== 'string' || !number(ml.highestClassScore) || ml.highestClassScore < 0 || ml.highestClassScore > 1 || !strings(ml.reviewReasons) || typeof ml.evaluationNote !== 'string' || typeof ml.modelAgreement !== 'boolean')) return false;
+  }
   if (!validWaitingPeriods(a.detailedWaitingPeriodAnalysis)) return false;
   return strings(a.categories) && strings(a.recoveryActions) && strings(a.explanations) && Array.isArray(a.policyClausesToReview) && a.policyClausesToReview.every(item => object(item));
 }

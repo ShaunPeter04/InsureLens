@@ -188,7 +188,7 @@ test('uploads reject invalid metadata before extraction, report duplicates and r
   let duplicate = false, extractionCalls = 0;
   UserPolicy.findOne = async query => { assert.equal(query.user, userId); return duplicate ? {} : null; };
   UserPolicy.create = async data => data;
-  axios.post = async () => { extractionCalls++; return { data: { extractedText: 'Test', extractedPolicyData: {} } }; };
+  axios.post = async () => { extractionCalls++; return { data: { extractionMethod: 'PDF Text', pageCount: 1, characterCount: 200, extractedText: 'Test', extractedPolicyData: {} } }; };
   process.env.ML_SERVICE_URL = 'http://example.invalid';
   const filePath = path.join('/tmp', `insurelens-test-${process.pid}.pdf`);
   const file = { path: filePath, filename: 'test.pdf', originalname: 'test.pdf', mimetype: 'application/pdf', size: 10 };

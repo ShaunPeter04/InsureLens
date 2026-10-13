@@ -474,7 +474,7 @@ router.post("/", auth, async (req, res) => {
 
     } catch (error) {
     // ML service timed out
-    if (error.code === "ECONNABORTED") {
+    if (["ECONNABORTED", "ETIMEDOUT"].includes(error.code)) {
         return res.status(504).json({
             message:
                 "Recommendation service took too long to respond. Please try again."
@@ -483,8 +483,7 @@ router.post("/", auth, async (req, res) => {
 
     // ML service is unavailable
     if (
-        error.code === "ECONNREFUSED" ||
-        error.code === "ENOTFOUND"
+        ["ECONNREFUSED", "ENOTFOUND", "ECONNRESET", "EAI_AGAIN"].includes(error.code)
     ) {
         return res.status(503).json({
             message:

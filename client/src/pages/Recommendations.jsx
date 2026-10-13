@@ -1,3 +1,4 @@
+import { submissionHeaders } from "../utils/serviceResilience";
 import { useRef, useState } from "react";
 import axios from "axios";
 import RecommendationCard from "../components/RecommendationCard";
@@ -5,6 +6,7 @@ import "./Recommendations.css";
 import { validateRecommendation, validateFamilyMember, validRecommendationResults } from "../utils/recommendationValidation";
 
 function Recommendations() {
+  const policySubmission = useRef(null);
   const requesting = useRef(false);
   const savingMember = useRef(false);
   const [hasRequested, setHasRequested] = useState(false);
@@ -623,7 +625,8 @@ function Recommendations() {
 
       const response = await axios.post(
         "/api/user-policies",
-        policyData
+        policyData,
+        {headers:submissionHeaders(policySubmission,policyData)}
       );
 
       alert(
@@ -806,6 +809,7 @@ function Recommendations() {
                         >
                           <input
                             type="checkbox"
+                            aria-label={`Include ${member.name}`}
                             checked={selected}
                             onChange={() =>
                               handleFamilyMemberSelection(member._id)
@@ -943,9 +947,10 @@ function Recommendations() {
                       {/* NAME */}
 
                       <div className="recommendation-form-group">
-                        <label>Name *</label>
+                        <label htmlFor="family-name">Name *</label>
 
                         <input
+                          id="family-name"
                           type="text"
                           name="name"
                           value={familyMemberForm.name}
@@ -957,9 +962,10 @@ function Recommendations() {
                       {/* RELATIONSHIP */}
 
                       <div className="recommendation-form-group">
-                        <label>Relationship *</label>
+                        <label htmlFor="family-relationship">Relationship *</label>
 
                         <select
+                          id="family-relationship"
                           name="relationship"
                           value={
                             familyMemberForm.relationship
@@ -986,9 +992,10 @@ function Recommendations() {
                       {/* DOB */}
 
                       <div className="recommendation-form-group">
-                        <label>Date of Birth *</label>
+                        <label htmlFor="family-dateOfBirth">Date of Birth *</label>
 
                         <input
+                          id="family-dateOfBirth"
                           type="date"
                           name="dateOfBirth"
                           value={familyMemberForm.dateOfBirth}
@@ -1017,9 +1024,10 @@ function Recommendations() {
                       {/* GENDER */}
 
                       <div className="recommendation-form-group">
-                        <label>Gender *</label>
+                        <label htmlFor="family-gender">Gender *</label>
 
                         <select
+                          id="family-gender"
                           name="gender"
                           value={familyMemberForm.gender}
                           onChange={handleFamilyMemberFormChange}
@@ -1045,9 +1053,10 @@ function Recommendations() {
                       {/* OCCUPATION */}
 
                       <div className="recommendation-form-group">
-                        <label>Occupation</label>
+                        <label htmlFor="family-occupation">Occupation</label>
 
                         <input
+                          id="family-occupation"
                           type="text"
                           name="occupation"
                           value={
@@ -1101,6 +1110,7 @@ function Recommendations() {
                             <button
                               key={disease}
                               type="button"
+                              aria-pressed={active}
                               className={
                                 active
                                   ? "disease-option active"
@@ -1119,6 +1129,7 @@ function Recommendations() {
                       <div className="disease-input-row">
                         <input
                           type="text"
+                          aria-label="Other condition for family member"
                           value={newFamilyDisease}
                           onChange={(e) =>
                             setNewFamilyDisease(
@@ -1222,6 +1233,7 @@ function Recommendations() {
                   <button
                     key={option.value}
                     type="button"
+                    aria-pressed={Number(formData.requiredCoverage) === option.value}
                     className={
                       Number(formData.requiredCoverage) ===
                       option.value
@@ -1292,6 +1304,7 @@ function Recommendations() {
                   <button
                     key={disease}
                     type="button"
+                    aria-pressed={diseaseExists(disease)}
                     className={
                       diseaseExists(disease)
                         ? "disease-option active"
@@ -1326,6 +1339,7 @@ function Recommendations() {
                 <div className="disease-input-row">
                   <input
                     type="text"
+                    aria-label="Other pre-existing condition"
                     value={otherDisease}
                     onChange={(e) =>
                       setOtherDisease(e.target.value)
@@ -1465,6 +1479,7 @@ function Recommendations() {
                   <button
                     key={option.value}
                     type="button"
+                    aria-pressed={Number(formData.coPaymentPreference) === option.value}
                     className={
                       Number(
                         formData.coPaymentPreference

@@ -17,7 +17,7 @@
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
-  color-scheme: light dark;
+  color-scheme: light;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -32,4 +32,27 @@
 
 body {
   margin: 0;
+}
+/* Keep padded page containers and controls within their available width. */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand, #1F6F5C);
+  outline-offset: 3px;
+}
+
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--brand, #1F6F5C);
+  outline-offset: 2px;
+}
+
+main {
+  overflow-wrap: anywhere;
+}
+
+/* Headings must scale their line height with their own font size. */
+h1, h2, h3 {
+  line-height: 1.25;
 }

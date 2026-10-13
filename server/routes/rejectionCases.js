@@ -1,3 +1,4 @@
+const idempotency = require("../middleware/idempotency")();
 
 const express = require("express");
 const { isValidId, validateRejectionCase } = require("../utils/insuranceValidation");
@@ -22,6 +23,7 @@ router.get("/", auth, async (req, res) => {
     })
       .populate({
         path: "userPolicy",
+        select: "-uploadedDocument.extractedText -uploadedDocument.filePath -uploadedDocument.fileName",
         match: { user: req.user },
         populate: { path: "policy" }
       })
@@ -29,7 +31,7 @@ router.get("/", auth, async (req, res) => {
 
     return res.json({ rejectionCases });
   } catch (error) {
-    console.error("Get rejection cases error:", error);
+    console.error("Get rejection cases failed");
     return res.status(500).json({
       message: "Failed to load rejection cases"
     });
@@ -37,7 +39,7 @@ router.get("/", auth, async (req, res) => {
 });
 
 // CREATE REJECTION CASE
-router.post("/", auth, async (req, res) => {
+router.post("/", auth, idempotency, async (req, res) => {
   try {
     const { error: validationError, data } = validateRejectionCase(req.body);
     if (validationError) return res.status(400).json({ message: validationError });
@@ -121,6 +123,7 @@ router.post("/", auth, async (req, res) => {
     const amount = rejectedAmount;
     const parsedDate = rejectionDate ? new Date(rejectionDate) : null;
 
+    req.writeAttempted = true;
     const rejectionCase = await RejectionCase.create({
       user: req.user,
       userPolicy: savedPolicy._id,
@@ -139,8 +142,8 @@ router.post("/", auth, async (req, res) => {
     if (error.name === "ValidationError" || error.name === "CastError") {
       return res.status(400).json({ message: "Invalid rejection details" });
     }
-    return res.status(500).json({
-      message: "Failed to create rejection case"
+    return res.status(req.writeAttempted ? 503 : 500).json({
+      message: req.writeAttempted ? "The save status could not be confirmed. Check your saved rejection cases before submitting again." : "Failed to create rejection case"
     });
   }
 });
@@ -159,6 +162,7 @@ router.get("/:caseId", auth, async (req, res) => {
       user: req.user
     }).populate({
       path: "userPolicy",
+        select: "-uploadedDocument.extractedText -uploadedDocument.filePath -uploadedDocument.fileName",
         match: { user: req.user },
       populate: { path: "policy" }
     });
@@ -171,7 +175,7 @@ router.get("/:caseId", auth, async (req, res) => {
 
     return res.json({ rejectionCase });
   } catch (error) {
-    console.error("Get rejection case error:", error);
+    console.error("Get rejection case failed");
     return res.status(500).json({
       message: "Failed to load rejection case"
     });

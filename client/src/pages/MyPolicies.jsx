@@ -1,3 +1,5 @@
+import { submissionHeaders } from "../utils/serviceResilience";
+import PolicyExtractionReview from "../components/PolicyExtractionReview";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import "./MyPolicies.css";
@@ -5,6 +7,7 @@ import { validateSavedPolicy } from "../utils/insuranceValidation";
 
 function MyPolicies() {
   const saving = useRef(false);
+  const submission = useRef(null);
   const [userPolicies, setUserPolicies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -161,7 +164,8 @@ useEffect(() => {
 
       await axios.post(
         "/api/user-policies/upload",
-        formData
+        formData,
+        {timeout:40000, headers:submissionHeaders(submission,{...data, file:uploadForm.policyDocument.name, size:uploadForm.policyDocument.size, modified:uploadForm.policyDocument.lastModified})}
       );
 
       setUploadSuccess(
@@ -195,7 +199,7 @@ useEffect(() => {
   if (loading) {
     return (
       <div className="my-policies-page">
-        <p>Loading your policies...</p>
+        <p role="status">Loading your policies...</p>
       </div>
     );
   }
@@ -243,8 +247,7 @@ useEffect(() => {
           <p className="upload-description">
             Upload your health insurance policy
             PDF. InsureLens will extract the
-            policy information for claimability
-            analysis.
+            policy information for manual review. Extracted terms do not verify coverage. Use an unencrypted text PDF (maximum 10 MB and 50 pages).
           </p>
 
           <div className="upload-form-grid">
@@ -352,8 +355,7 @@ useEffect(() => {
           {uploading && (
             <p className="processing-message">
               Extracting policy information.
-              Scanned PDFs may take longer
-              because OCR is used.
+              Use a text-based PDF. Scanned or mixed-image PDFs are not supported in this demonstration.
             </p>
           )}
         </form>
@@ -366,7 +368,7 @@ useEffect(() => {
       )}
 
       {uploadSuccess && (
-        <div className="my-policies-success">
+        <div className="my-policies-success" role="status">
           {uploadSuccess}
         </div>
       )}
@@ -454,6 +456,8 @@ useEffect(() => {
                   userPolicy.policyEndDate
                 ).toLocaleDateString("en-IN")}
               </p>
+
+              {isUploaded && <PolicyExtractionReview review={userPolicy.extractionReview} />}
 
               {isUploaded &&
                 userPolicy.uploadedDocument

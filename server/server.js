@@ -16,6 +16,9 @@ for (const variable of requiredEnvVariables) {
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+mongoose.set('bufferCommands', false);
+mongoose.set('maxTimeMS', 10000);
+const databaseAvailability = require('./middleware/databaseAvailability');
 const helmet = require('helmet');
 
 const authRoutes = require('./routes/auth');
@@ -44,11 +47,12 @@ app.use(
     cors({
         origin: process.env.CLIENT_URL || "http://localhost:5173",
         methods: ["GET", "POST", "PUT", "DELETE"],
-        allowedHeaders: ["Content-Type", "Authorization"]
+        allowedHeaders: ["Content-Type", "Authorization", "Idempotency-Key"]
     })
 );
 app.use(express.json());
 
+app.use('/api', databaseAvailability(mongoose.connection));
 app.use('/api/auth',authLimiter, authRoutes);
 app.use('/api/policies', policyRoutes);
 app.use("/api/recommendations", recommendationRoutes);
@@ -66,14 +70,19 @@ app.get('/api/protected', auth, (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => {
-        console.log('MongoDB connected');
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
-        });
-    })
-    .catch((error) => {
-        console.error('MongoDB connection error:', error);
-    });
+let reportedDatabaseFailure = false;
+async function connectDatabase() {
+    try {
+        await mongoose.connect(process.env.MONGO_URI, {serverSelectionTimeoutMS:5000, connectTimeoutMS:5000, socketTimeoutMS:10000});
+        reportedDatabaseFailure = false;
+        console.log('MongoDB connected');
+    } catch {
+        if (!reportedDatabaseFailure) console.error('MongoDB temporarily unavailable; database requests will return 503.');
+        reportedDatabaseFailure = true;
+        const retry = setTimeout(connectDatabase, 5000);
+        retry.unref();
+    }
+}
+connectDatabase();

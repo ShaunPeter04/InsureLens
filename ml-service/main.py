@@ -5,8 +5,9 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from pypdf import PdfReader
 from io import BytesIO
 from rejection_predictor import predict_rejection
-from pdf2image import convert_from_bytes
-import pytesseract
+from pdf_processing import process_text_pdf
+from starlette.concurrency import run_in_threadpool
+import asyncio
 
 
 import re
@@ -327,6 +328,13 @@ def recommend(request: RecommendationRequest):
 
 
 
+def explicit_number(text, pattern, maximum=None):
+    values = [float(m.group(1)) for m in re.finditer(pattern, text, re.IGNORECASE)]
+    if not values or any(v != values[0] for v in values) or maximum is not None and values[0] > maximum:
+        return None
+    return values[0]
+
+
 def extract_basic_policy_info(text: str):
     insurance_company = ""
     policy_name = ""
@@ -500,7 +508,7 @@ def extract_basic_policy_info(text: str):
             ped_waiting_match.group(1)
         )
 
-    room_rent_percentage = 0
+    room_rent_percentage = None
 
     room_rent_match = re.search(
         r"Room\s+Rent,\s*Boarding\s*&\s*Nursing\s+Charges\s*\(\s*(\d+(?:\.\d+)?)\s*%\s*of\s+Sum\s+Insured",
@@ -513,9 +521,9 @@ def extract_basic_policy_info(text: str):
             room_rent_match.group(1)
         )
 
-    inpatient_covered = False
-    minimum_hospitalization_hours = 0
-    daycare_treatments_covered = False
+    inpatient_covered = None
+    minimum_hospitalization_hours = None
+    daycare_treatments_covered = None
 
     # Inpatient hospitalization
     inpatient_match = re.search(
@@ -618,13 +626,15 @@ def extract_basic_policy_info(text: str):
         "insuranceCompany": insurance_company,
         "policyName": policy_name,
         "waitingPeriods": {
-            "initialDays": initial_waiting_days,
-            "specificIllnessesMonths": specific_illness_months,
+            "initialDays": explicit_number(text, r"Initial\s+waiting\s+period\s*:\s*(\d+)\s*days"),
+            "specificIllnessesMonths": explicit_number(text, r"(?:Specific\s+waiting\s+period\s*:\s*|List\s+of\s+Diseases\s+excluded\s+for\s+)(\d+)\s*months"),
             "specificIllnessConditions": specific_illness_conditions,
-            "preExistingDiseasesMonths": pre_existing_disease_months
+            "preExistingDiseasesMonths": explicit_number(text, r"Pre-\s*Existing\s+disease\s*-\s*(\d+)\s*months")
         },
         "roomRentLimit": {
-            "hasCap": room_rent_percentage > 0,
+            "hasCap": True if room_rent_percentage is not None else None,
+            "maxPerDay": None,
+            "roomTypeAllowed": None,
             "percentageOfSumInsured": room_rent_percentage
         },
         "hospitalizationCoverage": {
@@ -632,8 +642,12 @@ def extract_basic_policy_info(text: str):
             "minimumHospitalizationHours": minimum_hospitalization_hours,
             "daycareTreatmentsCovered": daycare_treatments_covered
         },
-        "majorExclusions": major_exclusions,
-        "subLimits": sub_limits
+        "coPaymentPercentage": explicit_number(text, r"Co[- ]payment\s*:\s*(\d+(?:\.\d+)?)\s*%", 100),
+        "deductibleAmount": explicit_number(text, r"Deductible\s*:\s*(?:INR|Rs\.?|₹)?\s*(\d+(?:\.\d+)?)(?![\d,.])"),
+        "majorExclusions": major_exclusions or None,
+        "subLimits": sub_limits or None,
+        "preExistingConditionsRules": None,
+        "importantConditions": None
 
     }
 
@@ -642,104 +656,18 @@ def extract_basic_policy_info(text: str):
 async def extract_policy_text(
     policyDocument: UploadFile = File(...)
 ):
-    if policyDocument.content_type != "application/pdf":
-        raise HTTPException(
-            status_code=400,
-            detail="Only PDF files are allowed"
-        )
-
     try:
-        pdf_bytes = await policyDocument.read()
-
-        # ------------------------------------------
-        # 1. DIRECT PDF TEXT EXTRACTION
-        # ------------------------------------------
-
-        reader = PdfReader(BytesIO(pdf_bytes))
-
-        extracted_pages = []
-
-        for page in reader.pages:
-            page_text = page.extract_text()
-
-            if page_text:
-                extracted_pages.append(page_text)
-
-        extracted_text = "\n".join(
-            extracted_pages
-        ).strip()
-
-        extraction_method = "PDF Text"
-
-        # ------------------------------------------
-        # 2. OCR FALLBACK
-        # ------------------------------------------
-
-        if len(extracted_text) < 100:
-
-            images = convert_from_bytes(
-                pdf_bytes,
-                dpi=200
-            )
-
-            ocr_pages = []
-
-            for image in images:
-                page_text = pytesseract.image_to_string(
-                    image,
-                    lang="eng"
-                )
-
-                if page_text.strip():
-                    ocr_pages.append(page_text)
-
-            extracted_text = "\n".join(
-                ocr_pages
-            ).strip()
-
-            extraction_method = "OCR"
-
-        # ------------------------------------------
-        # 3. VERIFY EXTRACTION
-        # ------------------------------------------
-
-        if len(extracted_text) < 100:
-            raise HTTPException(
-                status_code=422,
-                detail=(
-                    "Unable to extract sufficient text "
-                    "from the policy document."
-                )
-            )
-
-        # ------------------------------------------
-        # 4. POLICY RULE EXTRACTION
-        # ------------------------------------------
-
-        basic_policy_info = extract_basic_policy_info(
-            extracted_text
+        if policyDocument.content_type != "application/pdf":
+            raise HTTPException(400, "Only PDF policy documents are allowed.")
+        pdf_bytes = await policyDocument.read(10 * 1024 * 1024 + 1)
+        return await asyncio.wait_for(
+            run_in_threadpool(process_text_pdf, pdf_bytes, extract_basic_policy_info), timeout=20
         )
+    except asyncio.TimeoutError:
+        raise HTTPException(504, "PDF processing timed out. Use a smaller text-based PDF.")
+    finally:
+        await policyDocument.close()
 
-        return {
-            "fileName": policyDocument.filename,
-            "pageCount": len(reader.pages),
-            "extractedText": extracted_text,
-            "characterCount": len(extracted_text),
-            "extractionMethod": extraction_method,
-            "requiresOcr": extraction_method == "OCR",
-            "extractedPolicyData": basic_policy_info
-        }
-
-    except HTTPException:
-        raise
-
-    except Exception as error:
-        raise HTTPException(
-            status_code=500,
-            detail=(
-                f"Failed to extract PDF text: {str(error)}"
-            )
-        )
 
 @app.post("/predict-rejection")
 def predict_rejection_endpoint(

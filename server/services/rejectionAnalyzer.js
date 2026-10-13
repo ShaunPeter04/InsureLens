@@ -1,3 +1,4 @@
+const { extractionReview } = require("./uploadedPolicyReview");
 
 const normalize = (value = "") =>
   String(value)
@@ -344,6 +345,7 @@ function analyzeRejection(rejectionCase, policyData, userPolicy, claimCase,) {
     }
 
   return {
+    ...(userPolicy?.sourceType === "Uploaded" ? {extractionReview:extractionReview(userPolicy)} : {}),
     classificationMethod: "Rule-based keyword matching",
     classificationConfidence,
     detailedWaitingPeriodAnalysis,
@@ -362,7 +364,7 @@ function analyzeRejection(rejectionCase, policyData, userPolicy, claimCase,) {
         : [
             "The supplied rejection reason could not be classified automatically."
       ],
-    policyClausesToReview,
+    policyClausesToReview: userPolicy?.sourceType === "Uploaded" ? [{field:"Uploaded policy terms",value:"Unverified. Review the original policy; absent clauses do not mean no exclusions, sub-limits or deductions apply."}] : policyClausesToReview,
     recoveryActions:
       recoveryActions.length > 0
         ? recoveryActions

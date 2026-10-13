@@ -1,3 +1,5 @@
+import { submissionHeaders } from "../utils/serviceResilience";
+import PolicyExtractionReview from "../components/PolicyExtractionReview";
 import { formatWaitingDate } from "../utils/waitingPeriodDisplay";
 import { validClaimAnalysis } from "../utils/analysisResponseValidation";
 import { useEffect, useRef, useState } from "react";
@@ -7,6 +9,7 @@ import { validateClaimCase } from "../utils/insuranceValidation";
 
 function Claimability() {
   const saving = useRef(false);
+  const submission = useRef(null);
   const savedCase = useRef(null);
   const [userPolicies, setUserPolicies] = useState([]);
   const [familyMembers, setFamilyMembers] = useState([]);
@@ -138,7 +141,7 @@ const removeNonPayableExpense = (index) => {
       const signature = JSON.stringify(payload);
       let createdCase = savedCase.current?.signature === signature ? savedCase.current.case : null;
       if (!createdCase) {
-        const response = await axios.post("/api/claim-cases", payload);
+        const response = await axios.post("/api/claim-cases", payload, {headers:submissionHeaders(submission,payload)});
         createdCase = response.data.claimCase;
         savedCase.current = { signature, case: createdCase };
       }
@@ -170,7 +173,7 @@ const removeNonPayableExpense = (index) => {
   if (loadingPolicies) {
     return (
       <div className="claimability-page">
-        <p>Loading your policies...</p>
+        <p role="status">Loading your policies...</p>
       </div>
     );
   }
@@ -205,7 +208,7 @@ const removeNonPayableExpense = (index) => {
       )}
 
       {success && (
-        <p className="claimability-success">
+        <p className="claimability-success" role="status">
           {success}
         </p>
       )}
@@ -497,8 +500,9 @@ const removeNonPayableExpense = (index) => {
           {nonPayableExpenses.map((expense, index) => (
             <div className="non-payable-item" key={index}>
               <div>
-                <label>Expense Name</label>
+                <label htmlFor={`expense-expenseName-${index}`}>Expense Name</label>
                 <input
+                  id={`expense-expenseName-${index}`}
                   type="text"
                   placeholder="e.g. Masks"
                   value={expense.expenseName}
@@ -514,8 +518,9 @@ const removeNonPayableExpense = (index) => {
               </div>
 
               <div>
-                <label>Amount (₹)</label>
+                <label htmlFor={`expense-amount-${index}`}>Amount (₹)</label>
                 <input
+                  id={`expense-amount-${index}`}
                   type="number"
                   min="0.01"
                   step="0.01"
@@ -533,8 +538,9 @@ const removeNonPayableExpense = (index) => {
               </div>
 
               <div>
-                <label>Reason (Optional)</label>
+                <label htmlFor={`expense-reason-${index}`}>Reason (Optional)</label>
                 <input
+                  id={`expense-reason-${index}`}
                   type="text"
                   placeholder="e.g. Reported as non-payable"
                   value={expense.reason}
@@ -633,10 +639,10 @@ const removeNonPayableExpense = (index) => {
 
           <div className="score-box">
             <span className="score-number">
-              {analysisResult.claimabilityScore}
+              {analysisResult.claimabilityScore ?? "Not verified"}
             </span>
 
-            <span className="score-total">/100</span>
+            {analysisResult.claimabilityScore !== null && <span className="score-total">/100</span>}
 
             <strong>{analysisResult.assessment}</strong>
           </div>
@@ -729,6 +735,7 @@ const removeNonPayableExpense = (index) => {
           ))}
         </div>
 
+        <PolicyExtractionReview key={analysisResult.claimCaseId} review={analysisResult.extractionReview} />
         <div className="financial-summary">
           <h3>Estimated Financial Impact</h3>
 
@@ -754,30 +761,21 @@ const removeNonPayableExpense = (index) => {
             <div>
               <span>Co-payment</span>
               <strong>
-                ₹
-                {analysisResult.analysis.financialImpact.estimatedCoPayment.toLocaleString(
-                  "en-IN"
-                )}
+                {(analysisResult.analysis.financialImpact.estimatedCoPayment === null ? "Unknown — review required" : "₹" + analysisResult.analysis.financialImpact.estimatedCoPayment.toLocaleString("en-IN"))}
               </strong>
             </div>
 
             <div>
               <span>Deductible</span>
               <strong>
-                ₹
-                {analysisResult.analysis.financialImpact.estimatedDeductible.toLocaleString(
-                  "en-IN"
-                )}
+                {(analysisResult.analysis.financialImpact.estimatedDeductible === null ? "Unknown — review required" : "₹" + analysisResult.analysis.financialImpact.estimatedDeductible.toLocaleString("en-IN"))}
               </strong>
             </div>
 
             <div>
               <span>Preliminary Amount After Reported Deductions</span>
               <strong>
-                ₹
-                {analysisResult.analysis.financialImpact.estimatedAmountAfterBasicDeductions.toLocaleString(
-                  "en-IN"
-                )}
+                {(analysisResult.analysis.financialImpact.estimatedAmountAfterBasicDeductions === null ? "Unknown — review required" : "₹" + analysisResult.analysis.financialImpact.estimatedAmountAfterBasicDeductions.toLocaleString("en-IN"))}
               </strong>
             </div>
           </div>

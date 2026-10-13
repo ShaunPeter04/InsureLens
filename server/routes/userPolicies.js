@@ -1,3 +1,4 @@
+const idempotency = require("../middleware/idempotency")();
 const express = require("express");
 const { validateSavedPolicy } = require("../utils/insuranceValidation");
 const fs = require("fs");
@@ -10,6 +11,7 @@ const Policy = require("../models/Policy");
 const auth = require("../middleware/auth");
 const policyUpload = require("../middleware/policyUpload");
 
+const { extractedTerms, publicPolicy } = require("../utils/pdfValidation");
 const router = express.Router();
 
 async function duplicatePolicy(user, data, sourceType) {
@@ -37,9 +39,7 @@ function receivePolicyDocument(req, res, next) {
     });
 }
 const extractPolicyText = async (file) => {
-    const pdfBuffer = fs.readFileSync(
-        path.resolve(file.path)
-    );
+    const pdfBuffer = await fs.promises.readFile(path.resolve(file.path));
 
     const formData = new FormData();
 
@@ -78,18 +78,17 @@ router.get("/", auth, async (req, res) => {
         const userPolicies = await UserPolicy.find({
             user: req.user
         })
-            .select("-uploadedDocument.extractedText")
+
             .populate("policy")
             .sort({ createdAt: -1 });
 
         return res.json({
-            userPolicies
+            userPolicies: userPolicies.map(publicPolicy)
         });
 
     } catch (error) {
         console.error(
-            "Get user policies error:",
-            error.message
+            "Get user policies failed"
         );
 
         return res.status(500).json({
@@ -104,7 +103,7 @@ router.get("/", auth, async (req, res) => {
 // POST /api/user-policies
 // --------------------------------------------------
 
-router.post("/", auth, async (req, res) => {
+router.post("/", auth, idempotency, async (req, res) => {
     try {
         const { error: validationError, data } = validateSavedPolicy(req.body);
         if (validationError) return res.status(400).json({ message: validationError });
@@ -132,6 +131,7 @@ router.post("/", auth, async (req, res) => {
         const endDate = new Date(policyEndDate);
 
         // Create user-owned policy
+        req.writeAttempted = true;
         const userPolicy = await UserPolicy.create({
             user: req.user,
             sourceType: "Catalog",
@@ -175,8 +175,8 @@ router.post("/", auth, async (req, res) => {
             });
         }
 
-        return res.status(500).json({
-            message: "Failed to add policy"
+        return res.status(req.writeAttempted ? 503 : 500).json({
+            message: req.writeAttempted ? "The save status could not be confirmed. Check your saved policies before submitting again." : "Failed to add policy"
         });
     }
 });
@@ -190,6 +190,7 @@ router.post(
     "/upload",
     auth,
     receivePolicyDocument,
+    idempotency,
     async (req, res) => {
         let saved = false;
         try {
@@ -202,6 +203,12 @@ router.post(
             if (req.file.mimetype !== "application/pdf" || req.file.size <= 0 || req.file.size > 10 * 1024 * 1024) {
                 return res.status(400).json({ message: "Upload a nonempty policy PDF no larger than 10 MB" });
             }
+            await fs.promises.chmod(req.file.path, 0o600);
+            const header = await fs.promises.open(req.file.path, "r");
+            let signature;
+            try { const buffer = Buffer.alloc(5); await header.read(buffer, 0, 5, 0); signature = buffer.toString("ascii"); }
+            finally { await header.close(); }
+            if (signature !== "%PDF-") return res.status(400).json({message:"The file is not a valid PDF policy document."});
             const { error: validationError, data } = validateSavedPolicy(req.body, { uploaded: true });
             if (validationError) return res.status(400).json({ message: validationError });
             if (await duplicatePolicy(req.user, data, "Uploaded")) {
@@ -215,10 +222,13 @@ router.post(
             const extractionResult =
                 await extractPolicyText(req.file);
 
-            const extractedText =
-                extractionResult.extractedText || "";
+            if (extractionResult.extractionMethod !== "PDF Text" || typeof extractionResult.extractedText !== "string" || !Number.isSafeInteger(extractionResult.characterCount) || extractionResult.characterCount < 100 || !Number.isSafeInteger(extractionResult.pageCount) || extractionResult.pageCount < 1 || extractionResult.pageCount > 50 || !extractionResult.extractedPolicyData || Array.isArray(extractionResult.extractedPolicyData) || typeof extractionResult.extractedPolicyData !== "object") {
+                return res.status(502).json({message:"The extraction service returned incomplete information. Please try again."});
+            }
+            const extractedText = extractionResult.extractedText.slice(0, 12000);
 
             // Create uploaded user policy
+            req.writeAttempted = true;
             const userPolicy = await UserPolicy.create({
                 user: req.user,
 
@@ -253,60 +263,8 @@ router.post(
                         extractionResult.extractionMethod || "Not Processed"
                 },
 
-                extractedPolicyData: {
-                    insuranceCompany:
-                        extractionResult.extractedPolicyData?.insuranceCompany || "",
+                extractedPolicyData: extractedTerms(extractionResult.extractedPolicyData)
 
-                    policyName:
-                        extractionResult.extractedPolicyData?.policyName || "",
-
-                    waitingPeriods: {
-                        initialDays:
-                            extractionResult.extractedPolicyData
-                                ?.waitingPeriods?.initialDays ?? null,
-
-                        specificIllnessesMonths:
-                            extractionResult.extractedPolicyData
-                                ?.waitingPeriods?.specificIllnessesMonths ?? null,
-
-                        specificIllnessConditions:
-                            extractionResult.extractedPolicyData
-                                ?.waitingPeriods?.specificIllnessConditions ?? [],
-
-                        preExistingDiseasesMonths:
-                            extractionResult.extractedPolicyData
-                                ?.waitingPeriods?.preExistingDiseasesMonths ?? null
-                    },
-
-                    roomRentLimit: {
-                        hasCap:
-                            extractionResult.extractedPolicyData
-                                ?.roomRentLimit?.hasCap ?? false,
-
-                        percentageOfSumInsured:
-                            extractionResult.extractedPolicyData
-                                ?.roomRentLimit?.percentageOfSumInsured ?? 0
-                    },
-                    hospitalizationCoverage: {
-                        inpatientCovered:
-                            extractionResult.extractedPolicyData
-                                ?.hospitalizationCoverage?.inpatientCovered ?? false,
-
-                        minimumHospitalizationHours:
-                            extractionResult.extractedPolicyData
-                                ?.hospitalizationCoverage?.minimumHospitalizationHours ?? 0,
-
-                        daycareTreatmentsCovered:
-                            extractionResult.extractedPolicyData
-                                ?.hospitalizationCoverage?.daycareTreatmentsCovered ?? false
-                    },
-                    majorExclusions:
-                        extractionResult.extractedPolicyData
-                            ?.majorExclusions ?? [],
-                    subLimits:
-                        extractionResult.extractedPolicyData
-                            ?.subLimits ?? []
-                }
             });
 
 
@@ -314,28 +272,35 @@ router.post(
             return res.status(201).json({
                 message:
                     "Policy PDF uploaded successfully",
-                userPolicy
+                userPolicy: publicPolicy(userPolicy)
             });
 
         } catch (error) {
             if (error.name === "ValidationError" || error.name === "CastError") {
+                req.writeAttempted = false;
                 return res.status(400).json({ message: "Invalid uploaded policy details" });
             }
 
             if (error.code === 11000) {
+                req.writeAttempted = false;
                 return res.status(400).json({
                     message:
                         "This policy number is already saved in your account"
                 });
             }
 
-            return res.status(500).json({
-                message:
-                    "Failed to upload policy PDF"
-            });
+            if (req.writeAttempted) return res.status(503).json({message:"The save status could not be confirmed. Check your saved policies before submitting again."});
+            if ([400, 413, 422].includes(error.response?.status)) {
+                const message = /password/i.test(error.response?.data?.detail || "")
+                    ? "Password-protected PDFs are not supported. Use an unencrypted copy."
+                    : "The PDF could not be read. Use a valid, unencrypted text-based policy PDF (1–50 pages, maximum 10 MB). Scanned PDFs are not supported in this demonstration.";
+                return res.status(error.response.status).json({ message });
+            }
+            if (error.code === "ECONNABORTED" || error.response?.status === 504) return res.status(504).json({message:"PDF processing timed out. Use a smaller text-based PDF and try again."});
+            return res.status(503).json({ message: "Policy extraction is unavailable. Please try again later." });
         } finally {
             // Only remove this request's temporary upload when no policy was saved.
-            if (!saved && req.file?.path) {
+            if (!saved && !req.writeAttempted && req.file?.path) {
                 await fs.promises.unlink(req.file.path).catch(() => {});
             }
         }

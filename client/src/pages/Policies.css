@@ -206,6 +206,7 @@
 
     .policy-filters input,
     .policy-filters select {
+        flex: none;
         width: 100%;
         min-width: 0;
     }

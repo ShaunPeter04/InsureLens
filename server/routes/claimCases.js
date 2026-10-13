@@ -1,3 +1,4 @@
+const idempotency = require("../middleware/idempotency")();
 const express = require("express");
 const { isValidId, validateClaimCase } = require("../utils/insuranceValidation");
 
@@ -10,6 +11,7 @@ const { validateStoredAnalysis, diseases } = require("../utils/analysisValidatio
 
 const { analyzeWaitingPeriods, validDate } = require("../services/waitingPeriodAnalyzer");
 
+const { uploadedClaimAnalysis } = require("../services/uploadedPolicyReview");
 const router = express.Router();
 
 // ==================================================
@@ -22,7 +24,7 @@ router.get("/", auth, async (req, res) => {
             user: req.user
         })
             .populate({
-                path: "userPolicy",
+                path: "userPolicy", select: "-uploadedDocument.extractedText -uploadedDocument.filePath -uploadedDocument.fileName",
             match: { user: req.user },
                 populate: {
                     path: "policy"
@@ -36,8 +38,7 @@ router.get("/", auth, async (req, res) => {
 
     } catch (error) {
         console.error(
-            "Get claim cases error:",
-            error.message
+            "Get claim cases failed"
         );
 
         return res.status(500).json({
@@ -50,7 +51,7 @@ router.get("/", auth, async (req, res) => {
 // CREATE CLAIM CASE
 // ==================================================
 
-router.post("/", auth, async (req, res) => {
+router.post("/", auth, idempotency, async (req, res) => {
     try {
         const { error, data } = validateClaimCase(req.body);
         if (error) return res.status(400).json({ message: error });
@@ -67,16 +68,17 @@ router.post("/", auth, async (req, res) => {
             familyMember = member._id;
         }
 
+        req.writeAttempted = true;
         const claimCase = await ClaimCase.create({
             ...data, user: req.user, userPolicy: savedPolicy._id, familyMember
         });
-        await claimCase.populate({ path: "userPolicy", match: { user: req.user }, populate: { path: "policy" } });
+        await claimCase.populate({ path: "userPolicy", select: "-uploadedDocument.extractedText -uploadedDocument.filePath -uploadedDocument.fileName", match: { user: req.user }, populate: { path: "policy" } });
         return res.status(201).json({ message: "Hospitalization case created successfully", claimCase });
     } catch (error) {
         if (error.name === "ValidationError" || error.name === "CastError") {
             return res.status(400).json({ message: "Invalid hospitalization details" });
         }
-        return res.status(500).json({ message: "Failed to create hospitalization case" });
+        return res.status(req.writeAttempted ? 503 : 500).json({ message: req.writeAttempted ? "The save status could not be confirmed. Check your saved hospitalization cases before submitting again." : "Failed to create hospitalization case" });
     }
 });
 
@@ -144,6 +146,10 @@ router.get("/:caseId/analyze", auth, async (req, res) => {
 
         const analysisError = validateStoredAnalysis(claimCase, userPolicy, policyData, { allowIncompleteWaiting: true });
         if (analysisError) return res.status(400).json({ message: `${analysisError}. Please complete the saved details before analysis.` });
+
+        if (userPolicy.sourceType === "Uploaded") {
+            return res.json(uploadedClaimAnalysis(claimCase, userPolicy, policyData));
+        }
 
         let patientPreExistingDiseases = [];
 

@@ -34,19 +34,24 @@ function PolicyDetails() {
     fetchPolicy();
   }, [id]);
 
-  if (loading) {
-    return <p>Loading policy details...</p>;
+  if (loading || error || !policy) {
+    return (
+      <div className="policy-details-page">
+        <button type="button" className="policy-back-button" onClick={() => navigate("/policies")}>
+          ← Back to Policies
+        </button>
+        <div className="policy-detail-section" role={loading ? "status" : "alert"}>
+          {loading ? "Loading policy details..." : error || "Policy not found."}
+        </div>
+      </div>
+    );
   }
 
-  if (error) {
-    return <p>{error}</p>;
-  }
-
-  if (!policy) {
-    return <p>Policy not found.</p>;
-  }
+  const formatValue = (value, unit = "") => value == null ? "Unknown — confirm with insurer" : `${value}${unit}`;
+  const formatBoolean = (value, yes, no) => value == null ? "Unknown — confirm with insurer" : value ? yes : no;
 
   const formatCurrency = (amount) => {
+    if (amount == null) return "Unknown — confirm with insurer";
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
@@ -71,6 +76,11 @@ function PolicyDetails() {
         <h1>{policy.policyName}</h1>
         <h3>{policy.insuranceCompany}</h3>
       </div>
+
+      <p className="policy-details-disclaimer">
+        Catalog information is a summary. Premiums and final eligibility require
+        insurer confirmation; missing information does not mean unrestricted coverage.
+      </p>
 
       {/* Details Grid */}
       <div className="policy-details-grid">
@@ -98,19 +108,17 @@ function PolicyDetails() {
 
           <p>
             <strong>Minimum Age:</strong>{" "}
-            {policy.eligibility.minAge} years
+            {formatValue(policy.eligibility.minAge, " years")}
           </p>
 
           <p>
             <strong>Maximum Age:</strong>{" "}
-            {policy.eligibility.maxAge} years
+            {formatValue(policy.eligibility.maxAge, " years")}
           </p>
 
           <p>
             <strong>Family Floater:</strong>{" "}
-            {policy.eligibility.familyFloaterAllowed
-              ? "Allowed"
-              : "Not Allowed"}
+            {formatBoolean(policy.eligibility.familyFloaterAllowed, "Allowed", "Not Allowed")}
           </p>
         </section>
 
@@ -120,17 +128,17 @@ function PolicyDetails() {
 
           <p>
             <strong>Initial Waiting Period:</strong>{" "}
-            {policy.waitingPeriods.initialDays} days
+            {formatValue(policy.waitingPeriods.initialDays, " days")}
           </p>
 
           <p>
             <strong>Specific Illnesses:</strong>{" "}
-            {policy.waitingPeriods.specificIllnessesMonths} months
+            {formatValue(policy.waitingPeriods.specificIllnessesMonths, " months")}
           </p>
 
           <p>
             <strong>Pre-existing Diseases:</strong>{" "}
-            {policy.waitingPeriods.preExistingDiseasesMonths} months
+            {formatValue(policy.waitingPeriods.preExistingDiseasesMonths, " months")}
           </p>
 
           {policy.waitingPeriods.description && (
@@ -144,37 +152,27 @@ function PolicyDetails() {
 
           <p>
             <strong>Inpatient Coverage:</strong>{" "}
-            {policy.hospitalizationCoverage.inpatientCovered
-              ? "Yes"
-              : "No"}
+            {formatBoolean(policy.hospitalizationCoverage.inpatientCovered, "Yes", "No")}
           </p>
 
           <p>
             <strong>Minimum Hospitalization:</strong>{" "}
-            {
-              policy.hospitalizationCoverage
-                .minimumHospitalizationHours
-            }{" "}
-            hours
+            {formatValue(policy.hospitalizationCoverage.minimumHospitalizationHours, " hours")}
           </p>
 
           <p>
             <strong>Daycare Treatments:</strong>{" "}
-            {policy.hospitalizationCoverage.daycareTreatmentsCovered
-              ? "Covered"
-              : "Not Covered"}
+            {formatBoolean(policy.hospitalizationCoverage.daycareTreatmentsCovered, "Covered", "Not Covered")}
           </p>
 
           <p>
             <strong>Pre-Hospitalization:</strong>{" "}
-            {policy.hospitalizationCoverage.preHospitalizationDays}{" "}
-            days
+            {formatValue(policy.hospitalizationCoverage.preHospitalizationDays, " days")}
           </p>
 
           <p>
             <strong>Post-Hospitalization:</strong>{" "}
-            {policy.hospitalizationCoverage.postHospitalizationDays}{" "}
-            days
+            {formatValue(policy.hospitalizationCoverage.postHospitalizationDays, " days")}
           </p>
         </section>
 
@@ -184,12 +182,12 @@ function PolicyDetails() {
 
           <p>
             <strong>Room Restriction:</strong>{" "}
-            {policy.roomRentLimit.hasCap ? "Yes" : "No"}
+            {formatBoolean(policy.roomRentLimit.hasCap, "Yes", "No")}
           </p>
 
           <p>
             <strong>Room Type:</strong>{" "}
-            {policy.roomRentLimit.roomTypeAllowed}
+            {formatValue(policy.roomRentLimit.roomTypeAllowed)}
           </p>
 
           {policy.roomRentLimit.percentageOfSumInsured > 0 && (
@@ -214,7 +212,7 @@ function PolicyDetails() {
 
           <p>
             <strong>Co-payment:</strong>{" "}
-            {policy.coPaymentPercentage}%
+            {formatValue(policy.coPaymentPercentage, "%")}
           </p>
 
           <p>
@@ -330,4 +328,4 @@ function PolicyDetails() {
   );
 }
 
-export default PolicyDetails;   
+export default PolicyDetails;

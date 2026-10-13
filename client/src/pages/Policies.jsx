@@ -31,7 +31,7 @@ function Policies() {
   if (loading) {
     return (
       <div className="policies-page">
-        <div className="policies-state">
+        <div className="policies-state" role="status">
           Loading policies...
         </div>
       </div>
@@ -41,7 +41,7 @@ function Policies() {
   if (error) {
     return (
       <div className="policies-page">
-        <div className="policies-state">
+        <div className="policies-state" role="alert">
           {error}
         </div>
       </div>
@@ -83,12 +83,14 @@ function Policies() {
 
         <input
           type="text"
+          aria-label="Search policy or insurance company"
           placeholder="Search policy or insurance company..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
 
         <select
+          aria-label="Policy type"
           value={policyType}
           onChange={(e) => setPolicyType(e.target.value)}
         >
@@ -100,6 +102,7 @@ function Policies() {
         </select>
 
         <select
+          aria-label="Coverage amount"
           value={coverage}
           onChange={(e) => setCoverage(e.target.value)}
         >

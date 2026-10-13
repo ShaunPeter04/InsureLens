@@ -1,16 +1,16 @@
-# React + Vite
+# InsureLens frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React, React Router and Axios application built with Vite. See the [project README](../README.md) for prerequisites, backend/Python configuration, MongoDB setup, tests and insurance decision-support limitations, and [ARCHITECTURE.md](../ARCHITECTURE.md) for data flows.
 
-Currently, two official plugins are available:
+From this directory, with the dependencies installed:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm ci
+npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
+npm run lint
+npm run build
+```
 
-## React Compiler
+Vite proxies relative `/api` requests to Express at `http://localhost:5000` through [vite.config.js](vite.config.js). No `VITE_*` environment variables are currently used. The production build writes `dist/`; production hosting needs separate API proxy and client-side routing configuration.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The optional synthetic browser audit is [scripts/uiAudit.mjs](scripts/uiAudit.mjs). Its isolated Chrome setup is documented in the root README. There is no frontend `npm test` script.

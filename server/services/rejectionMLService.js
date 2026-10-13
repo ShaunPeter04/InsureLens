@@ -1,7 +1,8 @@
 
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL;
+const { validMLPrediction } = require("../utils/mlPredictionValidation");
 
 async function predictRejectionML(rejectionReason, insurerRemarks = "") {
+  const ML_SERVICE_URL = process.env.ML_SERVICE_URL?.trim();
   if (!ML_SERVICE_URL) {
     return {
       available: false,
@@ -31,16 +32,16 @@ async function predictRejectionML(rejectionReason, insurerRemarks = "") {
 
     const result = await response.json();
 
-    return {
-      available: true,
-      ...result,
-    };
+    if (!validMLPrediction(result)) return {available:false, reason:"invalid_response", error:"ML service returned incomplete results. Rule-based results remain available."};
+    return {...result, available:true, requiresManualReview:true};
   } catch (error) {
-    console.error("Rejection ML prediction failed:", error.message);
 
+
+    if (error.name === "SyntaxError") return {available:false, reason:"invalid_response", error:"ML service returned an invalid response. Rule-based results remain available."};
     return {
       available: false,
-      error: "ML prediction temporarily unavailable",
+      reason: ["TimeoutError", "AbortError"].includes(error.name) ? "timeout" : "unavailable",
+      error: ["TimeoutError", "AbortError"].includes(error.name) ? "ML prediction timed out. Rule-based results remain available." : "ML prediction temporarily unavailable. Rule-based results remain available.",
     };
   }
 }

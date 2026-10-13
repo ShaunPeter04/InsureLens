@@ -68,6 +68,8 @@ function validateStoredAnalysis(claim, savedPolicy, policy, { allowIncompleteWai
   if (error) return error;
   const coverage = money(savedPolicy.selectedCoverage);
   if (coverage === null || coverage <= 0) return 'Saved policy sum insured is missing or invalid';
+  // Uploaded terms are unverified; the upload-specific analysis produces unknown outcomes.
+  if (savedPolicy.sourceType === "Uploaded") return isObject(policy?.toObject ? policy.toObject() : policy) ? null : "Policy terms are unavailable";
   return validatePolicyTerms(policy, { allowIncompleteWaiting });
 }
 

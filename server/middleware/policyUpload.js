@@ -1,19 +1,16 @@
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
+const crypto = require("crypto");
+const directory = path.resolve(__dirname, "../uploads/policies");
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads/policies");
+        fs.mkdir(directory, { recursive: true, mode: 0o700 }, error => cb(error, directory));
     },
 
     filename: (req, file, cb) => {
-        const uniqueName =
-            `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-
-        cb(
-            null,
-            uniqueName + path.extname(file.originalname)
-        );
+        cb(null, crypto.randomUUID() + ".pdf");
     },
 });
 
@@ -33,6 +30,7 @@ const policyUpload = multer({
     fileFilter,
     limits: {
         fileSize: 10 * 1024 * 1024,
+        files: 1, fields: 5, parts: 6, fieldSize: 2048,
     },
 });
 

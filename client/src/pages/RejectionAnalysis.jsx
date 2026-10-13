@@ -1,3 +1,5 @@
+import { submissionHeaders } from "../utils/serviceResilience";
+import PolicyExtractionReview from "../components/PolicyExtractionReview";
 import { formatWaitingDate } from "../utils/waitingPeriodDisplay";
 import { validRejectionAnalysis } from "../utils/analysisResponseValidation";
 
@@ -13,6 +15,7 @@ import { validateRejectionCase } from "../utils/insuranceValidation";
 
 function RejectionAnalysis() {
   const saving = useRef(false);
+  const submission = useRef(null);
   const savedCase = useRef(null);
 
   const [userPolicies, setUserPolicies] = useState([]);
@@ -220,7 +223,7 @@ const handleSubmit = async (e) => {
       if (!createdCase) {
         const response = await axios.post("/api/rejection-cases", {
           ...payload, rejectionDate: payload.rejectionDate || undefined
-        });
+        }, {headers:submissionHeaders(submission,payload)});
         createdCase = response.data.rejectionCase;
         savedCase.current = { signature, case: createdCase };
       }
@@ -240,7 +243,7 @@ const handleSubmit = async (e) => {
 
       setSuccess(
 
-        "Rejection case created and analyzed successfully."
+        analysisResponse.data.mlPrediction?.available === false ? "Rule-based analysis completed. ML predictions are unavailable; submit again to retry prediction." : "Rejection case created and analyzed successfully."
 
       );
 
@@ -271,7 +274,7 @@ const handleSubmit = async (e) => {
 
       <div className="rejection-page">
 
-        <p>Loading your policy information...</p>
+        <p role="status">Loading your policy information...</p>
 
       </div>
 
@@ -309,7 +312,7 @@ const handleSubmit = async (e) => {
 
       {success && (
 
-        <p className="rejection-success">{success}</p>
+        <p className="rejection-success" role="status">{success}</p>
 
       )}
 
@@ -584,6 +587,7 @@ const handleSubmit = async (e) => {
       {analysisResult && (
 
         <section className="rejection-result">
+          <PolicyExtractionReview key={analysisResult.rejectionCaseId} review={analysisResult.analysis.extractionReview} />
 
             <div className="rejection-result-header">
 

@@ -122,6 +122,7 @@ function RecommendationCard({
       <div className="recommendation-card-actions">
         <button
           type="button"
+          aria-expanded={showBreakdown}
           onClick={() => setShowBreakdown((prev) => !prev)}
         >
           {showBreakdown
@@ -155,6 +156,7 @@ function RecommendationCard({
         <button
           type="button"
           disabled={isSaving}
+          aria-expanded={showAddPolicy}
           onClick={() => setShowAddPolicy((prev) => !prev)}
         >
           {showAddPolicy

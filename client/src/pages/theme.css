@@ -17,12 +17,7 @@
 
 .app-shell {
     min-height: 100vh;
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
+    width: 100%;
     background: var(--bg);
     font-family: 'Inter', -apple-system, sans-serif;
     color: var(--ink);
@@ -45,4 +40,7 @@
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 1.75rem;
+}
+@media (max-width: 700px) {
+    .app-main { padding: 1.5rem 1.25rem; }
 }

@@ -11,9 +11,11 @@ const config = { ...dotenv.parse(fs.readFileSync(path.join(root, 'server/.env'))
 const frontend = config.CLIENT_URL || 'http://localhost:5173';
 const backend = `http://localhost:${config.PORT || 5000}`;
 const ml = config.ML_SERVICE_URL?.replace(/\/+$/, '');
-const regression = process.argv.includes('--regression') ? require('./targetedRegressionCases') : null;
+const pdfAudit = process.argv.includes('--pdf');
+const resilienceAudit = process.argv.includes('--resilience');
+const regression = resilienceAudit ? require('./serviceResilienceCases') : pdfAudit ? require('./pdfHardeningCases') : process.argv.includes('--regression') ? require('./targetedRegressionCases') : null;
 const run = `${regression ? 'regression' : 'integration'}-${Date.now()}-${crypto.randomBytes(5).toString('hex')}`;
-const reportPath = process.env.INTEGRATION_RESULT_PATH || (regression ? '/tmp/insurelens-regression-results.json' : '/tmp/insurelens-integration-results.json');
+const reportPath = process.env.INTEGRATION_RESULT_PATH || (resilienceAudit ? '/tmp/insurelens-service-resilience-results.json' : pdfAudit ? '/tmp/insurelens-pdf-hardening-results.json' : regression ? '/tmp/insurelens-regression-results.json' : '/tmp/insurelens-integration-results.json');
 const password = crypto.randomBytes(18).toString('base64url') + 'Aa1!';
 const emails = [`${run}-a@example.invalid`, `${run}-b@example.invalid`, `${run}-c@example.invalid`];
 const results = { run, startedAt: new Date().toISOString(), services: [], api: [], regression: [], browser: [], cleanup: [], filesChanged: [], database: {} };
@@ -54,6 +56,7 @@ async function unusedMobile() {
 async function cleanup() {
   if (!namespaceVerified) { results.cleanup.push({ status: "NOT TESTED", name: "Synthetic cleanup", detail: "Synthetic namespace was not confirmed empty before writes; no cleanup attempted" }); return; }
   if (!dbConnected) { results.cleanup.push({ status: 'BLOCKED', name: 'Synthetic data cleanup', detail: 'MongoDB connection was unavailable' }); return; }
+  if (pdfAudit || resilienceAudit) await regression.cleanup({mongoose, accounts, run, expect, results});
   // Accounts were absent before any write and can be deleted only by verified IDs/emails.
   const users = await mongoose.connection.collection('users').find({ email: { $in: emails } }, { projection: { _id: 1, email: 1 } }).toArray();
   for (const user of users) {
@@ -90,14 +93,16 @@ async function browserAudit() {
   const tabs = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
   const ws = new WebSocket(tabs.find(tab => tab.type === 'page').webSocketDebuggerUrl);
   await new Promise((resolve, reject) => { ws.addEventListener('open', resolve, { once: true }); ws.addEventListener('error', reject, { once: true }); });
+  const handlers = new Map(); const expectedHttpFailures = new Set();
   let serial = 0; const pending = new Map(); const errors = []; const failedRequests = []; const httpFailures = []; const requests = [];
   ws.addEventListener('message', event => {
     const value = JSON.parse(event.data);
     if (value.id) { const waiting = pending.get(value.id); if (waiting) { pending.delete(value.id); value.error ? waiting.reject(new Error('DevTools command failed')) : waiting.resolve(value.result); } }
     else if (value.method === 'Network.requestWillBeSent') requests.push({ method:value.params.request.method, path:new URL(value.params.request.url).pathname });
-    else if (value.method === 'Network.responseReceived' && value.params.response.status >= 400) httpFailures.push(value.params.response.status);
+    else if (value.method === 'Network.responseReceived' && value.params.response.status >= 400) {if(!expectedHttpFailures.has(value.params.requestId)) httpFailures.push(value.params.response.status);}
     else if (value.method === 'Runtime.exceptionThrown') errors.push(value.params.exceptionDetails.text);
     else if (value.method === 'Network.loadingFailed' && !value.params.canceled) failedRequests.push(value.params.errorText);
+    if (handlers.has(value.method)) Promise.resolve(handlers.get(value.method)(value.params)).catch(()=>errors.push('Audit interception failed'));
   });
   const cdp = (method, params = {}) => new Promise((resolve, reject) => {
     const id = ++serial;
@@ -111,8 +116,8 @@ async function browserAudit() {
     if (res.exceptionDetails) throw new Error('Browser evaluation failed');
     return res.result?.value;
   };
-  const waitFor = async expression => {
-    for (let i = 0; i < 200; i++) { if (await evaluate(expression)) return; await new Promise(resolve => setTimeout(resolve, 100)); }
+  const waitFor = async (expression, timeoutMS = 20000) => {
+    for (let i = 0; i < Math.ceil(timeoutMS/100); i++) { if (await evaluate(expression)) return; await new Promise(resolve => setTimeout(resolve, 100)); }
     const e = new Error('Browser condition timed out'); e.auditDetail = 'Browser did not reach its expected UI state within 20 seconds'; throw e;
   };
   const go = async route => { await cdp('Page.navigate', { url: frontend + route }); await waitFor(`document.readyState === 'complete' && document.querySelector('#root')?.textContent.length > 0`); };
@@ -191,7 +196,7 @@ async function browserAudit() {
       await waitFor(`location.pathname===${JSON.stringify(route)} && !!document.querySelector(${JSON.stringify(selector)})`);
     }
   });
-  if (regression) await regression.browser({ accounts, check, expect, evaluate, cdp, waitFor, go, setFields, submit, clickText, requests });
+  if (regression) await regression.browser({ accounts, check, expect, evaluate, cdp, waitFor, go, setFields, submit, clickText, requests, mongoose, run, onCdp:(method,handler)=>handlers.set(method,handler), expectHttpFailure:id=>expectedHttpFailures.add(id) });
   results.browser.push({ name:'Unexpected HTTP errors', status:httpFailures.length?'FAILED':'PASSED', detail:`${httpFailures.length} browser HTTP responses with status 400 or greater` });
   results.browser.push({ name:'Uncaught JavaScript errors', status:errors.length?'FAILED':'PASSED', detail:`${errors.length} uncaught runtime exceptions` });
   results.browser.push({ name:'Failed network requests', status:failedRequests.length?'FAILED':'PASSED', detail:`${failedRequests.length} uncanceled transport failures` });
