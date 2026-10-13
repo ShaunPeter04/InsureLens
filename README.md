@@ -1,6 +1,6 @@
 # InsureLens
 
-**A MERN + FastAPI health insurance decision-support prototype for an MCA final project.**
+**A MERN + FastAPI health insurance decision-support platform**
 
 InsureLens helps users compare catalog policies, organize their existing coverage, assess a recorded hospitalization against selected policy terms, and understand possible claim-rejection reasons and recovery steps. It combines transparent rules with experimental text classification, while making unknown policy information and the need for human review explicit.
 
@@ -282,7 +282,7 @@ insurelens/
 
 There is no Docker Compose setup, deployment pipeline or root npm workspace in the inspected repository. `ml-service/READNME.md` is an empty legacy file; this README provides the service setup.
 
-## Suggested MCA demonstration sequence
+## Suggested demonstration sequence
 
 1. Use a fictional account to demonstrate registration/login and Profile.
 2. Browse a catalog policy and explain its recorded terms and disclaimers.
