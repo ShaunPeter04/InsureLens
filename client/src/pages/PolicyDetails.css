@@ -1,0 +1,147 @@
+.policy-details-page {
+    min-height: calc(100vh - 70px);
+    padding: 2.5rem 3rem;
+    background: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+}
+
+.policy-back-button {
+    margin-bottom: 1.5rem;
+    padding: 0.55rem 1rem;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+
+    color: var(--brand);
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+    border-radius: 7px;
+
+    cursor: pointer;
+}
+
+.policy-back-button:hover {
+    border-color: var(--brand);
+    background: var(--brand-light);
+}
+
+.policy-details-header {
+    margin-bottom: 2rem;
+}
+
+.policy-details-header h1 {
+    margin: 0 0 0.4rem;
+
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 2rem;
+    font-weight: 600;
+
+    color: var(--ink);
+}
+
+.policy-details-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--brand);
+}
+
+.policy-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.policy-detail-section {
+    padding: 1.5rem;
+
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.policy-detail-section h2 {
+    margin: 0 0 1rem;
+
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+
+    color: var(--ink);
+
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.policy-detail-section p {
+    margin: 0.55rem 0;
+
+    font-size: 0.9rem;
+    line-height: 1.55;
+
+    color: var(--ink-soft);
+}
+
+.policy-detail-section strong {
+    color: var(--ink);
+    font-weight: 600;
+}
+
+.policy-detail-section ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.policy-detail-section li {
+    margin-bottom: 0.6rem;
+
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+.policy-detail-section a {
+    display: inline-block;
+
+    margin-top: 0.5rem;
+    padding: 0.65rem 1rem;
+
+    color: #FFFFFF;
+    background: var(--brand);
+
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    border-radius: 7px;
+}
+
+.policy-detail-section a:hover {
+    background: var(--brand-dark);
+}
+
+.policy-detail-full {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 800px) {
+
+    .policy-details-page {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .policy-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .policy-detail-full {
+        grid-column: auto;
+    }
+
+    .policy-details-header h1 {
+        font-size: 1.65rem;
+    }
+}

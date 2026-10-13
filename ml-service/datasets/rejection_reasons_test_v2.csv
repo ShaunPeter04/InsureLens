@@ -1,0 +1,25 @@
+rejection_reason,category
+The TPA raised a query seeking the treating doctor's progress notes.,Documentation
+The submitted claim packet lacks the operation theatre register extract.,Documentation
+Insurer requires a legible copy of the patient's inpatient chart.,Documentation
+The admissible settlement was reduced by the insured's cost-sharing obligation.,Financial Deduction
+A fixed amount must be borne by the policyholder before reimbursement.,Financial Deduction
+The insurer disallowed miscellaneous consumable charges from the final bill.,Financial Deduction
+The medical review concluded that overnight admission was not clinically justified.,Hospitalization
+The procedure was performed without qualifying inpatient care.,Hospitalization
+The treatment duration did not meet the applicable admission requirement.,Hospitalization
+The requested service is outside the contract's list of insured benefits.,Policy Exclusion
+The insurer invoked a contractual exclusion for the proposed therapy.,Policy Exclusion
+The expense relates to a treatment expressly omitted from coverage.,Policy Exclusion
+The member's insurance protection had ended before the medical event.,Policy Validity
+No active cover was recorded against the insured on the service date.,Policy Validity
+The renewal gap left the claimant without an effective policy.,Policy Validity
+Earlier prescriptions show the same ailment was being managed before enrollment.,Pre-existing Disease
+The insurer alleges that the patient's longstanding disorder was concealed.,Pre-existing Disease
+Prior specialist visits indicate the diagnosis preceded the start of cover.,Pre-existing Disease
+The selected accommodation category was above the policy's permitted room entitlement.,Room Rent or Sub-limit
+The surgical package exceeded the maximum benefit allocated to that procedure.,Room Rent or Sub-limit
+The hospital charged more than the contractual per-day accommodation allowance.,Room Rent or Sub-limit
+Benefits for the diagnosed condition had not yet become eligible under the deferred coverage clause.,Waiting Period
+The minimum uninterrupted insurance duration required for this treatment was not met.,Waiting Period
+The hospitalization occurred before the temporary restriction on benefits ended.,Waiting Period

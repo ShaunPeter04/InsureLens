@@ -1,0 +1,65 @@
+rejection_reason,category
+Claim denied because the initial waiting period has not ended,Waiting Period
+Hospitalization occurred within the first thirty days of coverage,Waiting Period
+Specific illness waiting period is still applicable,Waiting Period
+The required waiting period for this treatment is incomplete,Waiting Period
+Claim declined because the policy is too new,Waiting Period
+Treatment falls under the disease specific waiting period,Waiting Period
+Waiting period conditions have not been satisfied,Waiting Period
+The insured has not completed the applicable waiting duration,Waiting Period
+Claim rejected due to an undisclosed pre existing disease,Pre-existing Disease
+Medical records indicate a preexisting condition,Pre-existing Disease
+The insured failed to disclose an existing illness,Pre-existing Disease
+Rejection due to pre existing disease waiting requirements,Pre-existing Disease
+The proposal form did not mention the prior diagnosis,Pre-existing Disease
+Claim denied because of non disclosure of medical history,Pre-existing Disease
+Pre-existing medical condition was not declared,Pre-existing Disease
+The insurer identified an undeclared chronic illness,Pre-existing Disease
+The claimed treatment is excluded from policy coverage,Policy Exclusion
+Claim rejected under the policy exclusion clause,Policy Exclusion
+The procedure is not covered by this insurance plan,Policy Exclusion
+Treatment falls under a permanent exclusion,Policy Exclusion
+The insurer does not cover the requested medical procedure,Policy Exclusion
+Claim declined for an excluded medical expense,Policy Exclusion
+This medical condition is outside the scope of coverage,Policy Exclusion
+The treatment is listed as an excluded benefit,Policy Exclusion
+Claim rejected because required documents were not submitted,Documentation
+The discharge summary is missing,Documentation
+Incomplete medical records prevented claim processing,Documentation
+The insurer requested additional hospital documents,Documentation
+Original invoices were not provided,Documentation
+Claim denied due to insufficient documentation,Documentation
+Required diagnostic reports are missing,Documentation
+The submitted claim form is incomplete,Documentation
+Hospitalization did not meet the minimum duration requirement,Hospitalization
+Admission was not considered medically necessary,Hospitalization
+Treatment was classified as outpatient care,Hospitalization
+The patient was hospitalized for less than twenty four hours,Hospitalization
+Claim denied because inpatient admission was unnecessary,Hospitalization
+The treatment does not qualify as eligible day care,Hospitalization
+Hospital admission requirements were not satisfied,Hospitalization
+Medical necessity for hospitalization was not established,Hospitalization
+Room rent exceeded the permitted daily limit,Room Rent or Sub-limit
+The selected room category was not eligible,Room Rent or Sub-limit
+Claim amount exceeded the procedure sub limit,Room Rent or Sub-limit
+Proportionate deduction applied due to higher room rent,Room Rent or Sub-limit
+Hospital room charges exceeded policy allowance,Room Rent or Sub-limit
+The treatment specific sublimit has been reached,Room Rent or Sub-limit
+Room category restriction was violated,Room Rent or Sub-limit
+The insurer applied a room rent related deduction,Room Rent or Sub-limit
+Claim rejected because the insurance policy had expired,Policy Validity
+The policy was inactive on the admission date,Policy Validity
+Premium was not paid before the due date,Policy Validity
+Coverage had lapsed before hospitalization,Policy Validity
+The insurance contract was not in force,Policy Validity
+Claim denied because policy renewal was incomplete,Policy Validity
+The insurer recorded a lapse in coverage,Policy Validity
+The policy validity period had ended,Policy Validity
+Claim reduced because of the applicable co payment,Financial Deduction
+The deductible amount was subtracted from the settlement,Financial Deduction
+Non payable medical expenses were deducted,Financial Deduction
+The policy requires the insured to share treatment costs,Financial Deduction
+The claim includes expenses not eligible for reimbursement,Financial Deduction
+Co payment percentage was applied to the eligible bill,Financial Deduction
+The settlement excludes non medical consumables,Financial Deduction
+The deductible threshold has not been met,Financial Deduction

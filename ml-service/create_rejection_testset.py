@@ -1,0 +1,41 @@
+import pandas as pd
+
+test_examples = [
+    ("Claim declined due to incomplete indoor treatment records.", "Documentation"),
+    ("Original pharmacy invoices were not furnished.", "Documentation"),
+    ("Insurer requires the attending physician's clinical notes.", "Documentation"),
+
+    ("The requested cosmetic procedure falls outside policy coverage.", "Policy Exclusion"),
+    ("Experimental treatment is excluded under the insurance contract.", "Policy Exclusion"),
+
+    ("The insured must bear the mandatory deductible.", "Financial Deduction"),
+    ("A percentage of the hospital bill was deducted as co-payment.", "Financial Deduction"),
+
+    ("Admission was considered unnecessary for the stated condition.", "Hospitalization"),
+    ("Treatment did not satisfy inpatient admission requirements.", "Hospitalization"),
+
+    ("The disease-specific waiting duration has not elapsed.", "Waiting Period"),
+    ("Claim submitted during the initial exclusion period.", "Waiting Period"),
+
+    ("The condition existed before the policy was purchased.", "Pre-existing Disease"),
+    ("Prior medical history was not disclosed during enrollment.", "Pre-existing Disease"),
+
+    ("Hospital room charges exceeded the permitted daily limit.", "Room Rent or Sub-limit"),
+    ("The procedure exceeded the policy's specified treatment cap.", "Room Rent or Sub-limit"),
+
+    ("The insurance contract had expired before hospitalization.", "Policy Validity"),
+    ("Coverage was inactive on the date of admission.", "Policy Validity"),
+]
+
+df = pd.DataFrame(
+    test_examples,
+    columns=["rejection_reason", "category"]
+)
+
+df.to_csv(
+    "datasets/rejection_reasons_test.csv",
+    index=False
+)
+
+print("Independent test examples:", len(df))
+print(df["category"].value_counts())

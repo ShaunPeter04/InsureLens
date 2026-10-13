@@ -1,0 +1,117 @@
+import { useRef, useState } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { Link, useNavigate } from "react-router-dom";
+import "./auth.css";
+import { validateLogin } from "../utils/authValidation";
+
+function Login() {
+    const saving = useRef(false);
+    const [email, setEmail] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const { login } = useAuth();
+    const navigate = useNavigate();
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (saving.current) return;
+
+        const validationError = validateLogin(email, password);
+
+        if (validationError) {
+        setError(validationError);
+        return;
+        }
+        setError('');
+        saving.current = true;
+        setIsSubmitting(true);
+
+        try {
+            await login(email.trim().toLowerCase(), password);
+            navigate('/dashboard');
+        }
+        catch (err) {
+            setError(err.response?.data?.message || 'Login failed');
+        }
+        finally {
+            saving.current = false;
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="auth-screen">
+            <div className="auth-brand">
+                <div className="auth-brand-content">
+                    <h1 className="auth-brand-headline">InsureLens</h1>
+                    <h2 className="auth-brand-mark">
+                        Understand what you're covered for, before you need it.
+                    </h2>
+                    <p className="auth-brand-copy">
+                        Track your policies, check a hospitalization against your
+                        coverage, and see exactly why a claim was approved or denied —
+                        in plain language.
+                    </p>
+                </div>
+            </div>
+
+            <div className="auth-panel">
+                <div className="auth-card">
+                    <h2 className="auth-title">Welcome back</h2>
+                    <p className="auth-subtitle">Log in to your account</p>
+
+                    <form className="auth-form" onSubmit={handleSubmit} noValidate>
+                        <div className="auth-field">
+                            <label htmlFor="email">Email</label>
+                            <input
+                                id="email"
+                                type="email"
+                                placeholder="you@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <div className="auth-field">
+    <label htmlFor="password">Password</label>
+    <div className="auth-field-input-wrap">
+        <input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+        />
+        <button
+            type="button"
+            className="auth-field-toggle"
+            onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+        >
+            {showPassword ? "Hide" : "Show"}
+        </button>
+    </div>
+</div>
+
+                        {error && <p className="auth-error" role="alert">{error}</p>}
+
+                        <button type="submit" className="auth-submit" disabled={isSubmitting}>  
+                            {isSubmitting ? 'Logging in…' : 'Log in'}
+                        </button>
+                    </form>
+
+                    <p className="auth-switch">
+                        Don't have an account? <Link to="/register">Register</Link>
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default Login;
